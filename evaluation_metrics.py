@@ -145,10 +145,4 @@ def evaluation_user_group_means(ndcg_scores, arp_scores, poplift_scores, user_gr
             / len(group_poplift_scores),
         }
 
-    #     print(
-    #         f"Group: {group_name} - nDCG: {group_means[group_name]['ndcg_mean']:.5f}; "
-    #         f"ARP: {group_means[group_name]['arp_mean']:.5f}; "
-    #         f"Poplift: {group_means[group_name]['poplift_mean']:.5f}"
-    #     )
-    # print("*" * 50)
     return group_means
