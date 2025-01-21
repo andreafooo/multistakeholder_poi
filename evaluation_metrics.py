@@ -3,28 +3,27 @@ import math
 
 
 def ndcg(test_data, df, top_k_eval=10):
-    test_data["relevance"] = 1
+    test_data = test_data.copy()  # Prevent modifying the original data
     ndcg_scores = {}
 
     for user_id in df["user_id:token"].unique():
-        recommended_items = df[df["user_id:token"] == user_id]["item_id:token"].tolist()
-        recommended_items = recommended_items[:top_k_eval]
-        true_items = test_data[test_data["user_id:token"] == user_id]
+        user_recommendations = df[df["user_id:token"] == user_id]
+        recommended_items = user_recommendations["item_id:token"].tolist()[:top_k_eval]
 
-        # Calculate the true relevance for each recommended item
-        true_relevance = [
-            1 if item in true_items["item_id:token"].values else 0
-            for item in recommended_items
-        ]
+        true_items = test_data[test_data["user_id:token"] == user_id][
+            "item_id:token"
+        ].values
+        true_relevance = [1 if item in true_items else 0 for item in recommended_items]
 
+        # Compute DCG@k
         dcg = sum(rel / np.log2(idx + 2) for idx, rel in enumerate(true_relevance))
 
-        # Calculate ideal DCG (iDCG)
-        sorted_relevance = sorted(true_relevance, reverse=True)
-        idcg = sum(rel / np.log2(idx + 2) for idx, rel in enumerate(sorted_relevance))
+        # Compute iDCG@k
+        idcg = sum(
+            1 / np.log2(idx + 2) for idx in range(min(len(true_items), top_k_eval))
+        )
 
-        ndcg = dcg / idcg if idcg > 0 else 0
-        ndcg_scores[user_id] = ndcg
+        ndcg_scores[user_id] = dcg / idcg if idcg > 0 else 0
 
     return ndcg_scores
 
