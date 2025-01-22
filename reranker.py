@@ -14,12 +14,13 @@ pd.options.mode.copy_on_write = True
 # global settings
 top_k_resample = 150
 top_k_eval = 10
-gridsearch = False
+gridsearch = True
 save_upd = True
 valid_popularity = "item_pop"  # or "business_popularity:float"
 recommendation_dirpart = "recommendations"
 
-available_datasets = ["yelp", "gowalla", "brightkite", "foursquaretky", "snowcard"]
+available_datasets = ["yelp", "brightkite", "foursquaretky", "snowcard"]
+# available_datasets = ["gowalla"]
 
 
 # Define the datasets you want to process
@@ -584,6 +585,7 @@ def cp_gridsearch(
     results = {}
     gridsearch_best_deltas = {}
     for i, delta in enumerate(deltas):
+        print("Processing delta:", delta)
         results[delta] = {}
         reranked_df = rerank_cp_all_users(
             base_resample, user_profiles, top_k_eval, delta=delta
@@ -745,25 +747,25 @@ def main(available_datasets):
 
                 print(f"Best deltas: {cp_gridsearch_best_deltas}")
 
-                # cp_dfs = []
-                # for group in user_groups.keys():
-                #     if group != "all":
-                #         base_resample_group = base_resample.loc[
-                #             base_resample["user_id:token"].isin(user_groups[group])
-                #         ]
-                #         user_profiles_group = user_profiles.loc[
-                #             user_profiles["user_id:token"].isin(user_groups[group])
-                #         ]
-                #         reranked_df_group = rerank_cp_all_users(
-                #             base_resample_group,
-                #             user_profiles_group,
-                #             top_k_eval,
-                #             delta=cp_gridsearch_best_deltas["harmonic_mean"][group],
-                #         )
-                #         cp_dfs.append(reranked_df_group)
+                cp_dfs = []
+                for group in user_groups.keys():
+                    if group != "all":
+                        base_resample_group = base_resample.loc[
+                            base_resample["user_id:token"].isin(user_groups[group])
+                        ]
+                        user_profiles_group = user_profiles.loc[
+                            user_profiles["user_id:token"].isin(user_groups[group])
+                        ]
+                        reranked_df_group = rerank_cp_all_users(
+                            base_resample_group,
+                            user_profiles_group,
+                            top_k_eval,
+                            delta=cp_gridsearch_best_deltas["harmonic_mean"][group],
+                        )
+                        cp_dfs.append(reranked_df_group)
 
-                # reranked_df = pd.concat(cp_dfs)
-                # save_top_k(reranked_df, basedir, "cp")
+                reranked_df = pd.concat(cp_dfs)
+                save_top_k(reranked_df, basedir, "cp")
 
                 cp_min_dfs = []
                 for group in user_groups.keys():
