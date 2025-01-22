@@ -151,13 +151,21 @@ def save_cp_metadata(base_dir, file, filename):
 
 
 def rerank_upd(
-    dataset, base_df, top_k_eval, valid_popularity, dir_to_save, calibrate_on="mean"
+    dataset,
+    base_df,
+    top_k_eval,
+    valid_popularity,
+    dir_to_save,
+    train_data,
+    calibrate_on="mean",
 ):
     # Load user-item interaction data
-    checkin_df = pd.read_csv(
-        f"{BASE_DIR}{dataset}_dataset/processed_data_recbole/{dataset}_sample.inter",
-        sep="\t",
-    )
+    # checkin_df = pd.read_csv(
+    #     f"{BASE_DIR}{dataset}_dataset/processed_data_recbole/{dataset}_sample.inter",
+    #     sep="\t",
+    # )
+
+    checkin_df = train_data.copy()
 
     # Calculate item popularity
     value_counts = checkin_df["item_id:token"].value_counts().reset_index()
@@ -685,6 +693,7 @@ def main(available_datasets):
                     top_k_eval,
                     valid_popularity,
                     dir_to_save=basedir,
+                    train_data=train_data,
                     calibrate_on="mean",
                 )
 
