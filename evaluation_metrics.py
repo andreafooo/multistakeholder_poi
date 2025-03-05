@@ -1,5 +1,6 @@
 import numpy as np
 import math
+from collections import Counter
 
 
 def ndcg(test_data, df, top_k_eval=10):
@@ -65,17 +66,6 @@ def calculate_deltas(
     calibrated_arp_scores, calibrated_poplift_scores = calculate_arp_poplift(
         calibrated_df, item_popularity, user_profile_popularity, valid_popularity
     )
-
-    # print(
-    #     f"nDCG base: {sum(base_ndcg_scores.values()) / len(base_ndcg_scores):,.5f}; calibrated: {sum(calibrated_ndcg_scores.values()) / len(calibrated_ndcg_scores):,.5f}"
-    # )
-    # print(
-    #     f"ARP base: {sum(base_arp_scores.values()) / len(base_arp_scores):,.5f}; calibrated: {sum(calibrated_arp_scores.values()) / len(calibrated_arp_scores):,.5f}"
-    # )
-    # print(
-    #     f"Poplift base: {sum(base_poplift_scores.values()) / len(base_poplift_scores):,.5f}; calibrated: {sum(calibrated_poplift_scores.values()) / len(calibrated_poplift_scores):,.5f}"
-    # )
-    # print("*" * 50)
 
     return (
         base_arp_scores,
@@ -145,3 +135,25 @@ def evaluation_user_group_means(ndcg_scores, arp_scores, poplift_scores, user_gr
         }
 
     return group_means
+
+
+def gini_index(item_ids, num_items):
+    """
+    Computes the Gini-index for the given recommendations
+    Source: https://github.com/rUngruh/mitigatingPopularityBiasInMRS
+    """
+    sum_ratio = 0
+    counts = list(Counter(item_ids).values())
+    counts += [0] * (num_items - len(counts))
+    L_len = sum(counts)
+
+    counts.sort()
+    occ_sum = 0
+    for k, count in enumerate(counts):
+        occ = count / L_len
+        occ_sum += occ
+        sum_ratio += ((num_items - (k + 1) + 1) / num_items) * occ
+
+    gini = 1 - ((2 / occ_sum) * sum_ratio)
+
+    return gini
