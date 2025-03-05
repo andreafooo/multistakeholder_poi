@@ -108,7 +108,9 @@ def jensen_shannon(profile_ratios, recommended_ratios):
     return js
 
 
-def evaluation_user_group_means(ndcg_scores, arp_scores, poplift_scores, user_groups):
+def evaluation_user_group_means(
+    ndcg_scores, arp_scores, poplift_scores, user_groups, top_k_df
+):
     group_means = {}
     for group_name, user_ids in user_groups.items():
         group_ndcg_scores = {
@@ -127,11 +129,15 @@ def evaluation_user_group_means(ndcg_scores, arp_scores, poplift_scores, user_gr
             if user_id in poplift_scores
         }
 
+        group_top_k_df = top_k_df[top_k_df["user_id:token"].isin(user_ids)]
+        flattened_item_ids = group_top_k_df["item_id:token"].values.tolist()
+        num_items = group_top_k_df["item_id:token"].nunique()
+
         group_means[group_name] = {
-            "ndcg_mean": sum(group_ndcg_scores.values()) / len(group_ndcg_scores),
-            "arp_mean": sum(group_arp_scores.values()) / len(group_arp_scores),
-            "poplift_mean": sum(group_poplift_scores.values())
-            / len(group_poplift_scores),
+            "ndcg": sum(group_ndcg_scores.values()) / len(group_ndcg_scores),
+            "arp": sum(group_arp_scores.values()) / len(group_arp_scores),
+            "poplift": sum(group_poplift_scores.values()) / len(group_poplift_scores),
+            "gini": gini_index(flattened_item_ids, num_items),
         }
 
     return group_means
