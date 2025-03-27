@@ -112,18 +112,22 @@ def evaluation_user_group_means(
     ndcg_scores, arp_scores, poplift_scores, user_groups, top_k_df
 ):
     group_means = {}
+    group_ndcg_scores = {}
+    group_arp_scores = {}
+    group_poplift_scores = {}
+
     for group_name, user_ids in user_groups.items():
-        group_ndcg_scores = {
+        group_ndcg_scores[group_name] = {
             user_id: ndcg_scores[user_id]
             for user_id in user_ids
             if user_id in ndcg_scores
         }
-        group_arp_scores = {
+        group_arp_scores[group_name] = {
             user_id: arp_scores[user_id]
             for user_id in user_ids
             if user_id in arp_scores
         }
-        group_poplift_scores = {
+        group_poplift_scores[group_name] = {
             user_id: poplift_scores[user_id]
             for user_id in user_ids
             if user_id in poplift_scores
@@ -134,13 +138,16 @@ def evaluation_user_group_means(
         num_items = group_top_k_df["item_id:token"].nunique()
 
         group_means[group_name] = {
-            "ndcg": sum(group_ndcg_scores.values()) / len(group_ndcg_scores),
-            "arp": sum(group_arp_scores.values()) / len(group_arp_scores),
-            "poplift": sum(group_poplift_scores.values()) / len(group_poplift_scores),
+            "ndcg": sum(group_ndcg_scores[group_name].values())
+            / len(group_ndcg_scores[group_name]),
+            "arp": sum(group_arp_scores[group_name].values())
+            / len(group_arp_scores[group_name]),
+            "poplift": sum(group_poplift_scores[group_name].values())
+            / len(group_poplift_scores[group_name]),
             "gini": gini_index(flattened_item_ids, num_items),
         }
 
-    return group_means
+    return group_means, group_ndcg_scores, group_arp_scores, group_poplift_scores
 
 
 def gini_index(item_ids, num_items):
