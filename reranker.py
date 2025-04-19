@@ -2,7 +2,7 @@
 import pandas as pd
 import json
 import numpy as np
-from globals import BASE_DIR
+from globals import BASE_DIR, available_datasets
 import os
 import matplotlib.pyplot as plt
 import random
@@ -18,9 +18,6 @@ gridsearch = True
 save_upd = True
 valid_popularity = "item_pop"  # or "business_popularity:float"
 recommendation_dirpart = "recommendations"
-
-available_datasets = ["yelp", "brightkite", "foursquaretky", "snowcard"]
-# available_datasets = ["gowalla"]
 
 
 # Define the datasets you want to process

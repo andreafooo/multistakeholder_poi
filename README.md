@@ -27,7 +27,6 @@ Links to the original datasets used in this study:
 * [gowalla_dataset](https://snap.stanford.edu/data/loc-gowalla.html)
 * [brightkite_dataset](https://snap.stanford.edu/data/loc-brightkite.html)
 * [foursquaretky_dataset](https://www.kaggle.com/datasets/chetanism/foursquare-nyc-and-tokyo-checkin-dataset)
-* snowcard_dataset (internal dataset with user-item interactions in ski resorts)
 
 5. Open the script ```data_sampler_alldata.ipynb``` and input the desired dataset for which you would like to generate the samples (default n=1500 users). The samples include three user groups; 1/3 that visited the most popular POIs, 1/3 around the popularity median and 1/3 that visited the least popular POIs. The train/validation/test (65/15/20) splits are performed based on a user-based temporal split. The samples are processed to fit the layout for RecBole and CAPRI and saved into the respective subfolders.
 

@@ -1,12 +1,11 @@
 import os
 import json
-from globals import BASE_DIR
+from globals import BASE_DIR, available_datasets
 
 # Constants
 top_k_eval = 10
 general_models = ["BPR", "SimpleX"]
 context_models = ["LORE", "USG"]
-available_datasets = ["brightkite", "foursquaretky", "gowalla", "snowcard", "yelp"]
 recommendation_dirpart = "recommendations"
 
 ############################################################################################################
