@@ -48,9 +48,3 @@ For all models, re-sampling for popularity bias mitigation is performed and the 
 
 The scripts ```evaluation.ipynb``` and ```user_centered_evaluation.ipynb``` include the full evaluation protocol. 
 
-## Author
-Andrea Forster - These calculations form part of my Master's Thesis (MSc) in Computational Social Systems at the Technical University Graz & University of Graz. 
-
-## License
-
-[MIT](https://choosealicense.com/licenses/mit/)
