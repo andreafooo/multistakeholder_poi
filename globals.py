@@ -1,3 +1,6 @@
-BASE_DIR = "/Volumes/Forster Neu/Masterarbeit Data/"
+BASE_DIR = "./datasets/"
 
-available_datasets = ["brightkite", "foursquaretky", "gowalla", "yelp"]
+available_datasets = ["foursquaretky"]
+
+# choose betweeen "yelp", "gowalla", "foursquaretky", and "brightkite"
+dataset = "foursquaretky"

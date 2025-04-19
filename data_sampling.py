@@ -3,7 +3,15 @@ import os
 import json
 from globals import BASE_DIR, available_datasets
 
-# beware: opening the yelp file with pandas will take a lot of time (approx 10 min)
+
+"""before calling the script, create a folder for every dataset in the BASE_DIR, 
+naming it <dataset>_dataset (e.g., yelp_dataset) & place the original downloaded data file(s) in there
+choose between "yelp", "gowalla", "foursquaretky", and "brightkite"
+beware: opening the yelp file with pandas will take a lot of time (approx 10 min)
+in case of introducing new datasets, check the functions "dataset_specific_preprocessing"
+(and "main", in case you want to include categories)"""
+
+
 include_categories = False  # for context-aware recommendation
 
 
@@ -385,6 +393,7 @@ def user_id_cleaner(df, column_name_list=["user_id:token", "item_id:token"]):
 def main():
     for dataset in available_datasets:
         DATASET_DIR = f"{BASE_DIR}{dataset}_dataset/"
+        print(DATASET_DIR)
         if dataset not in available_datasets:
             print(f"Dataset '{dataset}' is not available.")
             return
