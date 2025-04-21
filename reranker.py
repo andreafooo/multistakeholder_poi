@@ -607,12 +607,14 @@ def cp_gridsearch(
         group_hmt_means_up = calculate_group_ratios(user_groups, user_profiles)
         group_hmt_means_reranked = calculate_group_ratios(user_groups, reranked_df_user)
 
+        print(reranked_df_user)
+
         group_means, _, _, _ = evaluation_user_group_means(
             calibrated_ndcg_scores,
             calibrated_arp_scores,
             calibrated_poplift_scores,
             user_groups,
-            top_k_eval,
+            reranked_df,
         )
         for group_name, user_ids in user_groups.items():
             # Filter reranked_df_user and user_profiles for the current user group
