@@ -1,4 +1,4 @@
-data_path: dataset/   #add absolute path if needed
+data_path: recbole_general_recs/dataset/   #add absolute path if needed
 dataset: brightkite_sample
 field_separator: "\t"
 USER_ID_FIELD: user_id
