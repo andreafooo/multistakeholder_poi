@@ -1,0 +1,46 @@
+ITEM_ID_FIELD: item_id
+RATING_FIELD: checkin_count
+TIME_FIELD: timestamp
+USER_ID_FIELD: user_id
+benchmark_filename:
+- train
+- valid
+- test
+data_path: dataset/
+dataset: brightkite_sample
+embedding_size: 64
+epochs: 200
+eval_args:
+  group_by: user
+  order: TO
+  split:
+    RS:
+    - 0.65
+    - 0.15
+    - 0.2
+field_separator: "\t"
+filter_inter_by_user_or_item: true
+item_inter_num_interval: '[1,inf)'
+learning_rate: 0.001
+load_col:
+  inter:
+  - user_id
+  - item_id
+  - checkin_count
+metrics:
+- Recall
+- MRR
+- NDCG
+- Hit
+- Precision
+- MAP
+- GiniIndex
+- TailPercentage
+model: BPR
+show_progress: false
+topk: 10
+train_batch_size: 256
+train_neg_sample_args:
+  uniform: 1
+user_inter_num_interval: '[0,inf)'
+valid_metric: NDCG@10

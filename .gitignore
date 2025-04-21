@@ -6,3 +6,7 @@ user_id_pop_maker.ipynb
 user_centered_eval.ipynb
 .DS_Store
 foursquaretky_dataset/
+saved
+log
+log_tensorboard
+hyper.result
