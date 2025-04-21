@@ -9,14 +9,16 @@ This repository includes all necessary steps (data sample generation, preprocess
 
 ### Preprocessing
 
-1. create a virtual environment and activate it
+1. create a virtual environment and activate it. 
+
+Python < 3.12 (e.g., 3.11.8)
 ```
-python3 -m venv venv
+python3.11 -m venv venv
 source venv/bin/activate
 ```
 2. Install the requirements 
 ```
-pip3 install -r requirements.txt
+pip3 install -r requirements.txt  (To Do: Test entire pipeline with new venv & update requirements.txt)
 ```
 3. Create/update the script ```globals.py``` in the root directory and add the line ```BASE_DIR = /path/to/your/base/directory/```. This base directory will be used to store the datasets and the recommender outputs. 
 
@@ -46,6 +48,10 @@ This creates a folder inside the BASE_DIR/<dataset> named "recommendations/BPR+t
 ```pip3 install ray```
 ```pip3 install "ray[tune]"```
 In the recbole package in your virtual environment, comment out the line #from kmeans_pytorch import kmeans in the following path: recbole/model/general_recommender/ldiffrec.py
+
+In the hyperopt package, in hyperopt/pyll/stochastic.py", line 100, in randint
+    return rng.integers(low, high, size) --> exchange rng.integers for rng.randint
+
 
 #### CAPRI (To Do: Try it out with original CAPRI repo)
 To use [CAPRI](https://github.com/CapriRecSys/CAPRI), clone the repository and create a virtual environment. Make sure to use Python 3.9x. 

@@ -9,3 +9,4 @@ saved
 log
 log_tensorboard
 hyper.result
+venv
