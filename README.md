@@ -35,35 +35,27 @@ Generate Recommendations using [RecBole](https://github.com/RUCAIBox/RecBole) fo
 
 #### Recbole 
 
-1. Inside the folder ```recbole_general_recs/dataset``` create a folder with the structure <\dataset name>_sample (e.g., foursquaretky_sample) & copy the files from your ```BASE_DIR/foursquaretky_dataset/processed_data_recbole``` into that folder. 
+* Inside the folder ```recbole_general_recs/dataset``` create a folder with the structure <\dataset name>_sample (e.g., foursquaretky_sample) & copy the files from your ```BASE_DIR/foursquaretky_dataset/processed_data_recbole``` into that folder. 
 
-2. Hyperparameter optimization: has already been done and saved to recbole_general_recs/config - if you wish to re-do it, cd to recbole_general_recs and run ```python3 config_hyperparameter_creator.py``` -- see hyper.test for the tested parameters
+* Hyperparameter optimization: has already been done and saved to recbole_general_recs/config - if you wish to re-do it, cd to recbole_general_recs and run ```python3 config_hyperparameter_creator.py``` -- see hyper.test for the tested parameters
 
-3. cd back to the project's root directory, run: ```python3 recbole_general_recs/recbole_full_casestudy.py```
+* cd back to the project's root directory, run: ```python3 recbole_general_recs/recbole_full_casestudy.py```
 This creates a folder inside the BASE_DIR/<dataset> named "recommendations/BPR+timestamp including the config file that produced the recommendations, the general evaluation and the top_k_recommendations
 
-Note: In case of an error in Recbole, try:
+* Note: In case of an error in Recbole, try:
 ```pip3 install ray```
 ```pip3 install "ray[tune]"```
 In the recbole package in your virtual environment, comment out the line #from kmeans_pytorch import kmeans in the following path: recbole/model/general_recommender/ldiffrec.py
 
 
 
-
-
-
-
-In the forked RecBole repository, follow steps 1-3 again. Hyperparameter tuning: specify the hyperparameters to test in the file ```hyper.test```, then open ```config_hyper_parameter_creator.py``` and specify the datasets and (general recommendation) models for which you would like to perform hyperparameter tuning. The config files with the ideal hyperparameters will automatically be added to the folder ```config``` in the root directory. Once completed, open the script ```recbole_full_casestudy.py```. This will take into account the ideal hyperparameters and train the recommender models. The outputs of the general evaluation and the top-k recommendations can be found in the ```recommendations``` subfolder of the dataset in your ```BASE_DIR```. 
 #### CAPRI
 Follow steps 1-2 in the forked CAPRI repository. In the ```config.py```you can specify which contexts (Geographical, Social, Temporal, Interaction) each dataset features. For our study, social connections are not relevant, therefore we remove them from the data. Run the script ```main.py``` and choose the desired model and dataset. To reproduce the results, use "sum" fusion method. Create a folder with this exact structure in the ```recommendations``` subdirectory: ```<dataset>_sample-contextpoi-<model_name>-Jan-01-2024_09-00-00``` and manually transfer the Eval_ and Rec_ files for the respective model into this directory. Return to this repository, open the script ```capri_postprocessing.py```, specify the desired datasets and run the script to process the outputs (general evaluation and top-k recommendations) to be in line with those produced by RecBole.
 
-### Evaluation
+### Popularity Calibration
+
+* call both ```capri_postprocessing.py```and then ```postprocess_baseline_top_k.py```from the root directory. 
+* call ```reranker.py```from the root directory. gridsearch = False since it is already included for foursquaretky for the best CP-parameters.
 
 #### General Evaluation
-The evaluation protocol includes overall and group-specific evaluations. The evaluations are accuracy-based (NDCG) and fairness-based (Average Recommendation Popularity aka ARP and Popularity Lift aka PopLift), aiming to mitigate popularity bias and keep performance adequate. The evaluation is also compared between the user subgroups. 
-
-#### Debiasing by Re-ranking recommendations
-For all models, re-sampling for popularity bias mitigation is performed and the outputs are combined with the respective base versions. The aim of conducting this simple debiasing method is to calibrate the recommendations to be more in line with the user profile popularity. This is done by calculating the deviation between the item popularity of the items in the candidate set, and the user profile popularity and re-ranking them based on the smallest deviation.
-
-The scripts ```evaluation.ipynb``` and ```user_centered_evaluation.ipynb``` include the full evaluation protocol. 
-
+The script ```offline_evaluation.ipynb```includes the full evaluation and plots. The evaluation metrics are found in ```evaluation_metrics.py```. 
