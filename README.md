@@ -4,6 +4,7 @@ This repository includes all necessary steps (data sample generation, preprocess
 
 #### Note: If you don't want to follow the entire recommendation pipeline, you can take a shortcut to the evaluation to perform this based on the results from the foursquaretky dataset.
 
+## Full Results (To Do)
 
 ## Full Reproduction of Results
 
@@ -79,4 +80,3 @@ Note: In case of an error in CAPRI try: If you produce multiple recommendations 
 The script ```offline_evaluation.ipynb```includes the full evaluation and plots. The evaluation metrics are found in ```evaluation_metrics.py```. (Updates To-Do)
 
 
-## Results (To Do)
