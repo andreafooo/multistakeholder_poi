@@ -4,7 +4,6 @@ import json
 import numpy as np
 from globals import BASE_DIR, available_datasets
 import os
-import matplotlib.pyplot as plt
 import random
 from evaluation_metrics import *
 
@@ -14,8 +13,8 @@ pd.options.mode.copy_on_write = True
 # global settings
 top_k_resample = 150
 top_k_eval = 10
-gridsearch = True
-save_upd = True
+gridsearch = True  # set to true for new datasets
+save_upd = False
 valid_popularity = "item_pop"
 recommendation_dirpart = "recommendations"
 
@@ -157,12 +156,6 @@ def rerank_upd(
     train_data,
     calibrate_on="mean",
 ):
-    # Load user-item interaction data
-    # checkin_df = pd.read_csv(
-    #     f"{BASE_DIR}{dataset}_dataset/processed_data_recbole/{dataset}_sample.inter",
-    #     sep="\t",
-    # )
-
     checkin_df = train_data.copy()
 
     # Calculate item popularity
@@ -619,6 +612,7 @@ def cp_gridsearch(
             calibrated_arp_scores,
             calibrated_poplift_scores,
             user_groups,
+            top_k_eval,
         )
         for group_name, user_ids in user_groups.items():
             # Filter reranked_df_user and user_profiles for the current user group
@@ -671,11 +665,13 @@ def main(available_datasets):
                     dataset, result["directory"]
                 )
 
-                #### Use if skipping already processed models
-                # cp_dir = os.path.join(basedir, "cp")
-                # if os.path.exists(cp_dir):
-                #     print(f"Skipping {result['model']} on {result['dataset']} as {cp_dir} already exists.")
-                #     continue
+                ### Use if skipping already processed models
+                cp_dir = os.path.join(basedir, "cp")
+                if os.path.exists(cp_dir):
+                    print(
+                        f"Skipping {result['model']} on {result['dataset']} as {cp_dir} already exists."
+                    )
+                    continue
 
                 train_data, test_data, user_groups = open_ground_truth_user_group(
                     dataset
