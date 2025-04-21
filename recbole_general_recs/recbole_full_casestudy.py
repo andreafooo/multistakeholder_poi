@@ -10,15 +10,9 @@ import glob
 import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from globals import BASE_DIR
+from globals import BASE_DIR, datasets_for_recbole, models_for_recbole
 
 """ In case of an error, comment out #from kmeans_pytorch import kmeans in the recbole package: recbole/model/general_recommender/ldiffrec.py """
-
-
-datasets = ["foursquaretky_sample"]
-
-
-models = ["BPR"]
 
 
 def extract_test_data(model_file):
@@ -149,8 +143,8 @@ def run_configurations(config):
 
 if __name__ == "__main__":
     # config = "config_test.yaml" # To-Do: add if clause if there is no specific config_test because they are only created after hyperopt
-    for dataset in datasets:
-        for model in models:
+    for dataset in datasets_for_recbole:
+        for model in models_for_recbole:
             config = f"recbole_general_recs/config/{dataset}/{model}/config_test.yaml"
             run_configurations(config)
             print(f"Finished {model} for {dataset}")

@@ -2,6 +2,10 @@ import os
 import yaml
 from recbole.trainer import HyperTuning
 from recbole.quick_start import objective_function
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from globals import datasets_for_recbole, models_for_recbole
 
 hyperopt = True
 
@@ -11,9 +15,7 @@ with open(base_config_file_path, "r") as file:
     base_config = yaml.safe_load(file)
 
 
-datasets = ["foursquaretky_sample"]
-
-models = ["BPR"]
+datasets = datasets_for_recbole
 
 
 def hyperopt_tune(config_file_path, params_file, output_file):
@@ -34,8 +36,8 @@ def hyperopt_tune(config_file_path, params_file, output_file):
     return hp.best_params
 
 
-for dataset in datasets:
-    for model in models:
+for dataset in datasets_for_recbole:
+    for model in models_for_recbole:
         config_dir = f"config/{dataset}/{model}"
         os.makedirs(config_dir, exist_ok=True)
 
@@ -57,4 +59,6 @@ for dataset in datasets:
             base_config["train_batch_size"] = best_params["train_batch_size"]
             with open(config_file_path, "w") as file:
                 yaml.dump(base_config, file)
-                print("Updated config file with best hyperparameters")
+                print(
+                    f"Updated config file with best hyperparameters in dir {config_dir}"
+                )
