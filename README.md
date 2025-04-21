@@ -2,7 +2,7 @@
 
 This repository includes all necessary steps (data sample generation, preprocessing, saving data files for plug-in into recommendation frameworks, re-ranking for popularity bias mitigation, accuracy-based evaluation, and user-centered evaluation) to generate baseline and re-ranked POI recommendations and evaluate their performance. To facilitate the reproducibility of the recommendations, we use the recommender frameworks [RecBole](https://github.com/RUCAIBox/RecBole) for general recommender models and [CAPRI](https://github.com/CapriRecSys/CAPRI) for Context-Aware Point-of-Interest Recommendation. 
 
-#### Note: If you don't want to follow the entire recommendation pipeline, you can take a shortcut to the evaluation to perform this based on the results from the Foursquare dataset.
+#### Note: If you don't want to follow the entire recommendation pipeline, you can take a shortcut to the evaluation to perform this based on the results from the foursquaretky dataset.
 
 
 ## Full Reproduction of Results
@@ -47,15 +47,30 @@ This creates a folder inside the BASE_DIR/<dataset> named "recommendations/BPR+t
 ```pip3 install "ray[tune]"```
 In the recbole package in your virtual environment, comment out the line #from kmeans_pytorch import kmeans in the following path: recbole/model/general_recommender/ldiffrec.py
 
+#### CAPRI (To Do: Try it out with original CAPRI repo)
+To use [CAPRI](https://github.com/CapriRecSys/CAPRI), clone the repository and create a virtual environment. Make sure to use Python 3.9x. 
+
+In the current repository, in the folder ```capri_context_recs``` you can find some files that need to be exchanged in the repository in order to fit our use case: 
+
+1. switch out the ```requirements.txt```in CAPRI with the one in ```capri_context_recs/requirements.txt`` and install the packages in your venv. 
+
+2. switch out ```<CAPRI ROOT DIR>/config.py``` (because we added new data samples and must name them)
+3. switch out ```<CAPRI ROOT DIR>/Data/readDataSizes.py``` (because we added new data samples and must name them)
+4. switch out ```<CAPRI ROOT DIR>/Evaluations/evaluator.py``` (get Recommendations including scores since they are needed for the re-ranking)
+
+5. Add our preprocessed sample datasets to CAPRI (e.g., ```BASE_DIR/foursquaretky_dataset/processed_data_capri```) to ```<CAPRI ROOT DIR>/Datasets/<dataset>_sample``` and follow the same naming convention as in RecBole (e.g., foursquaretky_sample). If you do so, there is no need to adapt readDataSizes.py and config.py, otherwise the folder names must be adapted in these 2 scripts. 
+
+6. In the ```config.py```you can specify which contexts (Geographical, Social, Temporal, Interaction) each dataset features. For our study, social connections are not relevant, therefore we remove them from the data. Run the script ```main.py``` and choose the desired model and dataset. To reproduce the results, use "sum" fusion method. Create a folder with this exact structure in the ```BASE_DIR/datasets/<dataset>_dataset/recommendations``` subdirectory: ```<dataset>_sample-contextpoi-<model_name>-Jan-01-2024_09-00-00``` and manually place the respective Outputs/Eval_ and Outputs/Scores_ files for the respective model into this directory. Return to this repository, open the script ```capri_postprocessing.py```, specify the desired datasets and run the script to process the outputs (general evaluation and top-k recommendations) to be in line with those produced by RecBole.
+
+Note: In case of an error in CAPRI try: If you produce multiple recommendations with the same model and dataset, you may have to delete the files inside ```<CAPRI ROOT DIR>/<Models>/<model name>/savedModels```to avoid errors. If you receive an error regarding the dataSize, it may help to include an empty file named socialRelations.txt with the dataset files. 
+
+### Popularity Calibration (Updates To Do)
+
+* call ```postprocess_baseline_top_k.py```from the root directory. 
+* call ```reranker.py```from the root directory. gridsearch = False since it is already included for foursquaretky for the best CP-parameters. This produces results for $CP_H$ and $CP_\Im$ inside ```BASE_DIR/datasets/<dataset>_dataset/recommendations/<model name>``
+
+#### General Evaluation (Updates To Do)
+The script ```offline_evaluation.ipynb```includes the full evaluation and plots. The evaluation metrics are found in ```evaluation_metrics.py```. (Updates To-Do)
 
 
-#### CAPRI
-Follow steps 1-2 in the forked CAPRI repository. In the ```config.py```you can specify which contexts (Geographical, Social, Temporal, Interaction) each dataset features. For our study, social connections are not relevant, therefore we remove them from the data. Run the script ```main.py``` and choose the desired model and dataset. To reproduce the results, use "sum" fusion method. Create a folder with this exact structure in the ```recommendations``` subdirectory: ```<dataset>_sample-contextpoi-<model_name>-Jan-01-2024_09-00-00``` and manually transfer the Eval_ and Rec_ files for the respective model into this directory. Return to this repository, open the script ```capri_postprocessing.py```, specify the desired datasets and run the script to process the outputs (general evaluation and top-k recommendations) to be in line with those produced by RecBole.
-
-### Popularity Calibration
-
-* call both ```capri_postprocessing.py```and then ```postprocess_baseline_top_k.py```from the root directory. 
-* call ```reranker.py```from the root directory. gridsearch = False since it is already included for foursquaretky for the best CP-parameters.
-
-#### General Evaluation
-The script ```offline_evaluation.ipynb```includes the full evaluation and plots. The evaluation metrics are found in ```evaluation_metrics.py```. 
+## Results (To Do)
