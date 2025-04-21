@@ -1,0 +1,2 @@
+precision,recall,ndcg,map
+0.0116,0.01464,0.01368,0.0056

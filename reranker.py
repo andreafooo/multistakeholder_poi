@@ -5,6 +5,7 @@ import numpy as np
 from globals import BASE_DIR, available_datasets
 import os
 import random
+import traceback
 from evaluation_metrics import *
 
 pd.options.mode.copy_on_write = True
@@ -13,7 +14,7 @@ pd.options.mode.copy_on_write = True
 # global settings
 top_k_resample = 150
 top_k_eval = 10
-gridsearch = True  # set to true for new datasets
+gridsearch = False  # set to true for new datasets
 save_upd = False
 valid_popularity = "item_pop"
 recommendation_dirpart = "recommendations"
@@ -667,13 +668,13 @@ def main(available_datasets):
                     dataset, result["directory"]
                 )
 
-                ### Use if skipping already processed models
-                cp_dir = os.path.join(basedir, "cp")
-                if os.path.exists(cp_dir):
-                    print(
-                        f"Skipping {result['model']} on {result['dataset']} as {cp_dir} already exists."
-                    )
-                    continue
+                # ### Use if skipping already processed models
+                # cp_dir = os.path.join(basedir, "cp")
+                # if os.path.exists(cp_dir):
+                #     print(
+                #         f"Skipping {result['model']} on {result['dataset']} as {cp_dir} already exists."
+                #     )
+                #     continue
 
                 train_data, test_data, user_groups = open_ground_truth_user_group(
                     dataset
@@ -782,10 +783,13 @@ def main(available_datasets):
                 reranked_df = pd.concat(cp_min_dfs)
                 save_top_k(reranked_df, basedir, "cp_min_js")
 
-            except KeyError:
-                print(
-                    f"Error: In Model {result['model']} on dataset {result['dataset']}"
-                )
+            # except KeyError:
+            #     print(
+            #         f"Error: In Model {result['model']} on dataset {result['dataset']}"
+            #     )
+
+            except Exception as e:
+                traceback.print_exception(type(e), e, e.__traceback__)
                 continue
 
 
