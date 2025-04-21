@@ -16,7 +16,7 @@ top_k_resample = 150
 top_k_eval = 10
 gridsearch = True
 save_upd = True
-valid_popularity = "item_pop"  # or "business_popularity:float"
+valid_popularity = "item_pop"
 recommendation_dirpart = "recommendations"
 
 

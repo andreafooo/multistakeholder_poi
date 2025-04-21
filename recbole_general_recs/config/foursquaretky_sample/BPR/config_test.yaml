@@ -6,7 +6,7 @@ benchmark_filename:
 - train
 - valid
 - test
-data_path: dataset/
+data_path: recbole_general_recs/dataset/
 dataset: foursquaretky_sample
 embedding_size: 128
 epochs: 200
@@ -21,7 +21,7 @@ eval_args:
 field_separator: "\t"
 filter_inter_by_user_or_item: false
 item_inter_num_interval: '[0,inf)'
-learning_rate: 0.0001
+learning_rate: 0.001
 load_col:
   inter:
   - user_id
@@ -39,7 +39,7 @@ metrics:
 model: BPR
 show_progress: false
 topk: 10
-train_batch_size: 256
+train_batch_size: 2048
 train_neg_sample_args:
   uniform: 1
 user_inter_num_interval: '[0,inf)'

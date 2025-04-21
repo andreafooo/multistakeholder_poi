@@ -6,7 +6,7 @@ benchmark_filename:
 - train
 - valid
 - test
-data_path: dataset/
+data_path: recbole_general_recs/dataset/
 dataset: brightkite_sample
 embedding_size: 64
 epochs: 200

@@ -86,26 +86,10 @@ def run_configurations(config):
                 print(f"Model did not return valid predictions for user {uid}")
                 continue
 
-            # print(f"TOP K SCORES for {uid} :")
-            # print(topk_score)  # scores of top 10 items
-            # print(topk_iid_list)  # internal id of top 10 items
             # Convert internal item IDs to external tokens
             external_item_list = dataset.id2token(
                 dataset.iid_field, topk_iid_list.cpu()
             )
-
-            # Print or store recommendations
-            # print(f"EXTERNAL TOKENS OF TOP k ITEMS FOR USER {uid} :")
-            # print(external_item_list)
-
-            # Computing the full scores
-            # score = full_sort_scores(uid_series, model, test_data, device=config["device"])
-            # print("Score of all items")
-            # print(score)
-
-            # print(
-            #     score[0, dataset.token2id(dataset.iid_field, ["242", "302"])]
-            # )  # score of item ['242', '302'] for user '196'.
 
             recommendations[uid] = [
                 {"item_id": item_id, "score": score}
@@ -126,7 +110,9 @@ def run_configurations(config):
 
     model_file_cleaned = model_file.split(".")[0]
 
-    FINAL_OUTPUT_DIR = f"{OUTPUT_DIR + model_file_cleaned}/"
+    FINAL_OUTPUT_DIR = (
+        f"{OUTPUT_DIR + config_dict['dataset'] + '-' + model_file_cleaned}/"
+    )
 
     if not os.path.exists(FINAL_OUTPUT_DIR):
         os.makedirs(FINAL_OUTPUT_DIR)
