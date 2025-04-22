@@ -1,4 +1,3 @@
-# %%
 import pandas as pd
 import json
 import numpy as np
@@ -97,7 +96,6 @@ def create_base_recommendations(
     base_df = pd.DataFrame(base_recommendations)
     base_df = unstack_recommendations(base_df)
 
-    # normalize the scores
     try:
         base_df["score"] = base_df.groupby("user_id:token")["score"].transform(
             lambda x: (x - x.min()) / (x.max() - x.min())
@@ -120,7 +118,6 @@ def create_base_recommendations(
 
 
 def save_top_k(sorted_top_k_df, base_dir, reranking_method):
-    # Create the directory if it doesn't exist
     grouped_data = (
         sorted_top_k_df.groupby("user_id:token")["item_id:token"].apply(list).to_dict()
     )
@@ -136,8 +133,6 @@ def save_top_k(sorted_top_k_df, base_dir, reranking_method):
 
 
 def save_cp_metadata(base_dir, file, filename):
-    # Create the directory if it doesn't exist
-
     save_path = os.path.join(base_dir, "cp")
     os.makedirs(save_path, exist_ok=True)
     file_path = os.path.join(save_path, f"{filename}.json")
@@ -514,15 +509,15 @@ def get_extreme(results, metric, mode="max", use_abs=False):
 
     Parameters:
     - results (dict): The nested results dictionary.
-    - metric (str): The metric to compute the extreme for (e.g., 'ndcg', 'arp', 'poplift', 'js_divergence').
-    - mode (str): Either 'max' (default) or 'min' to compute the argmax or argmin.
+    - metric (str): The metric to compute the extreme for (e.g., "ndcg", "arp", "poplift", "js_divergence").
+    - mode (str): Either "max" (default) or "min" to compute the argmax or argmin.
     - use_abs (bool): Whether to compute extremes based on the absolute value of the metric.
 
     Returns:
     - dict: A dictionary with group names as keys and the corresponding delta and extreme value.
     """
     if mode not in ["max", "min"]:
-        raise ValueError("Mode must be either 'max' or 'min'.")
+        raise ValueError("Mode must be either max or min.")
 
     extreme_dict = {}
     compare = max if mode == "max" else min
@@ -597,8 +592,6 @@ def cp_gridsearch(
         group_hmt_means_up = calculate_group_ratios(user_groups, user_profiles)
         group_hmt_means_reranked = calculate_group_ratios(user_groups, reranked_df_user)
 
-        print(reranked_df_user)
-
         group_means, _, _, _ = evaluation_user_group_means(
             calibrated_ndcg_scores,
             calibrated_arp_scores,
@@ -606,25 +599,25 @@ def cp_gridsearch(
             user_groups,
             reranked_df,
         )
+
+        print("group_means contents:")
+        print(json.dumps(group_means, indent=2))
         for group_name, user_ids in user_groups.items():
-            # Filter reranked_df_user and user_profiles for the current user group
-            # reranked_group_df = reranked_df_user.loc[reranked_df_user['user_id:token'].isin(user_ids)]
-            # user_profile_group_df = user_profiles.loc[user_profiles['user_id:token'].isin(user_ids)]
             js = jensen_shannon(
                 group_hmt_means_up[group_name], group_hmt_means_reranked[group_name]
             )
             harmonic_mean = (
-                group_means[group_name]["ndcg_mean"]
+                group_means[group_name]["ndcg"]
                 * (1 - js)
-                / (group_means[group_name]["ndcg_mean"] + (1 - js))
+                / (group_means[group_name]["ndcg"] + (1 - js))
             )
 
             results[delta][group_name] = {
                 "js_divergence": js,
                 "harmonic_mean": harmonic_mean,
-                "ndcg": group_means[group_name]["ndcg_mean"],
-                "arp": group_means[group_name]["arp_mean"],
-                "poplift": group_means[group_name]["poplift_mean"],
+                "ndcg": group_means[group_name]["ndcg"],
+                "arp": group_means[group_name]["arp"],
+                "poplift": group_means[group_name]["poplift"],
             }
 
     gridsearch_best_deltas["ndcg"] = get_extreme(results, "ndcg")
@@ -657,14 +650,6 @@ def main(available_datasets):
                     dataset, result["directory"]
                 )
 
-                # ### Use if skipping already processed models
-                # cp_dir = os.path.join(basedir, "cp")
-                # if os.path.exists(cp_dir):
-                #     print(
-                #         f"Skipping {result['model']} on {result['dataset']} as {cp_dir} already exists."
-                #     )
-                #     continue
-
                 train_data, test_data, user_groups = open_ground_truth_user_group(
                     dataset
                 )
@@ -687,13 +672,28 @@ def main(available_datasets):
                 if save_upd:
                     save_top_k(upd_eval, basedir, "upd")
 
-                # ##### Using a smaller subsample for testing deltas in cp
-                # user_groups = sample_user_groups(user_groups, sample_size=50) # for testing
-                # sampled_user_ids = set(id_ for group in user_groups.values() for id_ in group) # for testing
-                # dataframes_to_filter = [train_data, test_data, base_resample, base_eval, upts] # for testing
-                # filtered_dataframes = [df.loc[df['user_id:token'].isin(sampled_user_ids)] for df in dataframes_to_filter] # for testing
-                # train_data, test_data, base_resample, base_eval, upts = filtered_dataframes # for testing
-                # #### End of using a smaller subsample for testing deltas in cp
+                ##### Using a smaller subsample for testing deltas in cp
+                # user_groups = sample_user_groups(
+                #     user_groups, sample_size=50
+                # )  # for testing
+                # sampled_user_ids = set(
+                #     id_ for group in user_groups.values() for id_ in group
+                # )  # for testing
+                # dataframes_to_filter = [
+                #     train_data,
+                #     test_data,
+                #     base_resample,
+                #     base_eval,
+                #     upts,
+                # ]  # for testing
+                # filtered_dataframes = [
+                #     df.loc[df["user_id:token"].isin(sampled_user_ids)]
+                #     for df in dataframes_to_filter
+                # ]  # for testing
+                # train_data, test_data, base_resample, base_eval, upts = (
+                #     filtered_dataframes  # for testing
+                # )
+                #### End of using a smaller subsample for testing deltas in cp
 
                 all_user_ids = (
                     set(user_groups["high"])
@@ -779,7 +779,7 @@ def main(available_datasets):
 
             except Exception as e:
                 traceback.print_exception(type(e), e, e.__traceback__)
-                continue
+                # continue
 
 
 if __name__ == "__main__":
