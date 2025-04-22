@@ -9,7 +9,11 @@ Our results reveal that context-aware models cannot be considered a uniform solu
 
 ## Results
 
-### Descriptive Statistics
+| Descriptive Statistics|
+| --- |
+| ![Evaluation](docs/images/dataset_stats.png)
+
+
 
 
 | Evaluation RQ1 & 2|
