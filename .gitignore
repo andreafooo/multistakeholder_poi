@@ -10,3 +10,4 @@ log
 log_tensorboard
 hyper.result
 venv
+requirements_old_venv.txt
