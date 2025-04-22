@@ -1,12 +1,32 @@
-# Fair Point-of-Interest Recommendation
+# Exploring the Effect of Context-Awareness and Popularity Calibration on Popularity Bias in POI Recommendations
 
-This repository includes all necessary steps (data sample generation, preprocessing, saving data files for plug-in into recommendation frameworks, re-ranking for popularity bias mitigation, accuracy-based evaluation, and user-centered evaluation) to generate baseline and re-ranked POI recommendations and evaluate their performance. To facilitate the reproducibility of the recommendations, we use the recommender frameworks [RecBole](https://github.com/RUCAIBox/RecBole) for general recommender models and [CAPRI](https://github.com/CapriRecSys/CAPRI) for Context-Aware Point-of-Interest Recommendation. 
 
-#### Note: If you don't want to follow the entire recommendation pipeline, you can take a shortcut to the evaluation to perform this based on the results from the foursquaretky dataset.
+## Abstract
 
-## Full Results (To Do)
+Point-of-interest (POI) recommender systems help users discover relevant locations, but their effectiveness is often compromised by popularity bias, which disadvantages less popular yet potentially meaningful places. This paper addresses the challenge by evaluating the effectiveness of context-aware models and calibrated popularity techniques as strategies for mitigating popularity bias. Using four real-world POI datasets (Brightkite, Foursquare, Gowalla, Yelp), we analyze the individual and combined effects of these approaches on recommendation accuracy and popularity bias.
+Our results reveal that context-aware models cannot be considered a uniform solution, as the models studied exhibit divergent impacts on accuracy and bias. In contrast, calibration techniques can effectively align recommendation popularity with user preferences, provided there is a careful balance between accuracy and bias mitigation. Notably, the combination of calibration and context-awareness yields recommendations that balance accuracy and close alignment with the users' popularity profiles, i.e., popularity calibration.
 
-## Full Reproduction of Results
+
+## Results
+
+### Descriptive Statistics
+
+### RQ1: Independent Impact of Context-Aware and Calibration Methods
+
+### RQ2: Combined Impact of Context-Aware and Calibration Methods
+
+### Item Distribution BPR, LORE, USG in Ground Truth, Baseline & CP 
+
+| Screenshot 1 | Screenshot 2 |
+| --- | --- |
+| ![Screenshot1](docs/images/popularity_distribution_brightkite.png) | ![Screenshot2](docs/images/popularity_distribution_foursquaretky.png) |
+
+
+## Manual to Reproduce Results
+
+The manual below includes all necessary steps (data sample generation, preprocessing, saving data files for plug-in into recommendation frameworks, re-ranking for popularity bias mitigation, accuracy-based evaluation, and user-centered evaluation) to generate baseline and re-ranked POI recommendations and evaluate their performance. To facilitate the reproducibility of the recommendations, we use the recommender frameworks [RecBole](https://github.com/RUCAIBox/RecBole) for general recommender models and [CAPRI](https://github.com/CapriRecSys/CAPRI) for Context-Aware Point-of-Interest Recommendation. 
+
+#### Note: If you don't want to follow the entire pipeline, you can take a shortcut to the evaluation to perform this based on the results from the foursquaretky dataset.
 
 ### Preprocessing
 
