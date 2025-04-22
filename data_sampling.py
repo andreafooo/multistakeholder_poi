@@ -192,23 +192,19 @@ def dataset_specific_preprocessing(dataset, DATASET_DIR):
 
 def filter_df(df, min_reviews_user=15, min_reviews_business=10):
     while True:
-        # Filter users with at least min_reviews reviews
         user_counts = df["user_id:token"].value_counts()
         user_mask = df["user_id:token"].map(user_counts) >= min_reviews_user
         df_filtered = df.loc[user_mask]
 
-        # Filter businesses with at least min_reviews reviews
         business_counts = df_filtered["item_id:token"].value_counts()
         business_mask = (
             df_filtered["item_id:token"].map(business_counts) >= min_reviews_business
         )
         df_filtered = df_filtered.loc[business_mask]
 
-        # If the size of the filtered DataFrame didn't change, break the loop
         if df_filtered.shape[0] == df.shape[0]:
             break
 
-        # Update the DataFrame for the next iteration
         df = df_filtered
 
     return df_filtered
@@ -222,17 +218,17 @@ def user_popularity_sample_calculator(
         checkin_df_filtered.groupby("user_id:token")["business_popularity:float"]
         .mean()
         .reset_index()
-    )  # try out median of item popularities in user profile instead of mean
+    )
     average_popularity_per_user.columns = ["user_id:token", "average_popularity"]
 
     average_popularity_per_user = average_popularity_per_user.sort_values(
         by="average_popularity", ascending=False
     )
 
-    # Get top users
+    # HighPop users
     high_pop_user_df_sample = average_popularity_per_user.head(sep_num)
 
-    # Get the users around the median
+    # MedPop users
     median_index = len(average_popularity_per_user) // 2
     start_med_index = max(median_index - int(sep_num * 1.5), 0)
     end_med_index = min(
@@ -242,7 +238,7 @@ def user_popularity_sample_calculator(
         start_med_index:end_med_index
     ]
 
-    # Get the lowest users
+    # LowPop users
     low_pop_user_df_sample = average_popularity_per_user.tail(sep_num)
 
     unique_users = list(
@@ -398,13 +394,12 @@ def main():
             print(f"Dataset '{dataset}' is not available.")
             return
 
-        # Perform dataset-specific preprocessing
         checkin_df, user_df, poi_df = dataset_specific_preprocessing(
             dataset, DATASET_DIR
         )
         checkin_df.sort_values(by="timestamp:float", ascending=True, inplace=True)
         checkin_df_timestamp = checkin_df.copy()
-        # Step 1: Group by user_id and business_id and count check-ins
+
         checkin_df["checkin_count:float"] = checkin_df.groupby(
             ["user_id:token", "item_id:token"]
         )["item_id:token"].transform("count")
@@ -429,7 +424,7 @@ def main():
         if dataset == "gowalla":
             checkin_df_filtered = filter_df(
                 checkin_df, 15, 20
-            )  # for gowalla i used business min 20 & user min 15
+            )  # for gowalla we used business min 20 & user min 15
         else:
             checkin_df_filtered = filter_df(checkin_df, 15, 10)
 
@@ -501,8 +496,8 @@ def main():
         checkin_df_timestamp = convert_to_unix_timestamp(
             checkin_df_timestamp, "timestamp:float"
         )
-        checkin_df_sample.sort_values(by="checkin_count:float", ascending=False)
         # very important: keeping the duplicate check-ins for the context aware recommendation to have the timestamps saved
+        checkin_df_sample.sort_values(by="checkin_count:float", ascending=False)
 
         # very important: dropping duplicate check-ins
         checkin_df_sample = checkin_df_sample.drop_duplicates(
@@ -540,7 +535,6 @@ def main():
             ["user_id:token", "item_id:token", "checkin_count:float"]
         ]
 
-        # Split the data
         train_list = []
         val_list = []
         test_list = []
@@ -554,7 +548,6 @@ def main():
             val_list.append(group.iloc[train_end:val_end])
             test_list.append(group.iloc[val_end:])
 
-        # Combine lists into DataFrames
         train_df = pd.concat(train_list)
         val_df = pd.concat(val_list)
         test_df = pd.concat(test_list)
@@ -567,7 +560,6 @@ def main():
                     "category_name:token_seq"
                 ].str.split(", ")
 
-                # Unstack the categories into multiple rows
                 category_df_sample = poi_df_sample.explode(
                     "category_name_unstacked:token_seq"
                 )
@@ -640,7 +632,6 @@ def main():
                 ]
                 data_saver_capri(poi_df_categories, "poiCategories", DATASET_DIR)
 
-        # Checking the final data sizes
         print(f"Final data sizes of dataset {dataset}:")
         print(
             train_df["user_id:token"].nunique(),

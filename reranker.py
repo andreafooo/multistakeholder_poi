@@ -327,12 +327,11 @@ def rerank_for_user(
     Implementation based on: https://github.com/rUngruh/mitigatingPopularityBiasInMRS/blob/main/studytool/Tool-Module/scripts/LFMRecommendations/Models/mitigation.py
     """
     reranked_list = []
-    category_counts = {"h": 0, "m": 0, "t": 0}  # Initialize category counts
-    score_count = 0  # Tracks cumulative score
+    category_counts = {"h": 0, "m": 0, "t": 0}
+    score_count = 0
 
     # Iteratively build the re-ranked list for the user
     for i in range(k):
-        # Calculate marginal relevance for all items for the current user
         criterion = marginal_relevances(
             score_count,
             scores,
@@ -359,20 +358,16 @@ def rerank_for_user(
                     non_zero_values.index(closest_to_zero_value)
                 ]
             else:
-                # Choose the maximum value (default behavior)
                 selected_idx = non_zero_indices[np.argmax(non_zero_values)]
         else:
             # Fallback: All values are zero
-            selected_idx = np.argmax(criterion)  # Default to the first max zero
+            selected_idx = np.argmax(criterion)
 
-        # Update score and add selected item to re-ranked list
         score_count += scores[selected_idx]
         reranked_list.append(initial_list[selected_idx])
 
-        # Update category counts
         category_counts[item_popularity[selected_idx]] += 1
 
-        # Remove selected item from the lists
         del initial_list[selected_idx]
         del scores[selected_idx]
         del item_popularity[selected_idx]
@@ -412,13 +407,8 @@ def marginal_relevances(
 
         # Increment the count temporarily
         recommendation_counts[popularity + "_ratio"] += 1
-        recommendation_ratios = recommendation_counts / (
-            list_len + 1
-        )  # Normalize counts
+        recommendation_ratios = recommendation_counts / (list_len + 1)
 
-        # print(f"Iteration {list_len + 1}: Temporary recommendation ratios: {recommendation_ratios}")
-
-        # Compute marginal relevance with adjusted formula
         rec_ratios, profile_ratios = get_profile_and_recommended_ratios_for_js(
             recommendation_ratios, user_profile
         )
@@ -478,7 +468,6 @@ def rerank_cp_all_users(df, user_profiles, top_k_eval, delta):
         )
         reranked_results[test_user_id] = reranked_list
 
-    # Create the DataFrame **after** the loop
     cp_results = pd.DataFrame([reranked_results]).T.reset_index()
     cp_results.columns = ["user_id:token", "item_id:token"]
     cp_reranked_df = cp_results.explode("item_id:token").reset_index(drop=True)
