@@ -15,7 +15,7 @@ Our results reveal that context-aware models cannot be considered a uniform solu
 
 ### RQ2: Combined Impact of Context-Aware and Calibration Methods
 
-### Item Distribution BPR, LORE, USG in Ground Truth, Baseline & CP 
+### RQ1 & 2: Item Distribution BPR, LORE & USG
 
 | Brightkite | Foursquare Tokyo |
 | --- | --- |
@@ -98,7 +98,7 @@ Note: In case of an error in CAPRI try: If you produce multiple recommendations 
 ### Popularity Calibration (Updates To Do)
 
 * call ```postprocess_baseline_top_k.py```from the root directory. 
-* call ```reranker.py```from the root directory. gridsearch = False since it is already included for foursquaretky for the best CP-parameters. This produces results for $CP_H$ and $CP_\Im$ inside ```BASE_DIR/datasets/<dataset>_dataset/recommendations/<model name>``
+* call ```reranker.py```from the root directory. gridsearch = False since it is already included for foursquaretky for the best CP-parameters. This produces results for $CP_H$ and $CP_\Im$ inside ```BASE_DIR/datasets/<dataset>_dataset/recommendations/<model name>```
 
 #### General Evaluation (Updates To Do)
 The script ```offline_evaluation.ipynb```includes the full evaluation and plots. The evaluation metrics are found in ```evaluation_metrics.py```. (Updates To-Do)
