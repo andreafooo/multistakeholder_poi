@@ -17,9 +17,12 @@ Our results reveal that context-aware models cannot be considered a uniform solu
 
 ### Item Distribution BPR, LORE, USG in Ground Truth, Baseline & CP 
 
-| Screenshot 1 | Screenshot 2 |
+| Brightkite | Foursquare Tokyo |
 | --- | --- |
-| ![Screenshot1](docs/images/popularity_distribution_brightkite.png) | ![Screenshot2](docs/images/popularity_distribution_foursquaretky.png) |
+| ![Brightkite](docs/images/popularity_distribution_brightkite.png) | ![Foursquare Tokyo](docs/images/popularity_distribution_foursquaretky.png) |
+| Gowalla | Yelp |
+| --- | --- |
+| ![Gowalla](docs/images/popularity_distribution_gowalla.png) | ![Yelp](docs/images/popularity_distribution_yelp.png) |
 
 
 ## Manual to Reproduce Results
