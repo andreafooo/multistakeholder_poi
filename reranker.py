@@ -21,6 +21,7 @@ recommendation_dirpart = "recommendations"
 
 # Define the datasets you want to process
 def dataset_metadata(dataset, recommendation_dirpart=recommendation_dirpart):
+    """Extract metadata for each dataset and model"""
     data = []
 
     recs = os.listdir(f"{BASE_DIR}{dataset}_dataset/{recommendation_dirpart}")
@@ -70,7 +71,7 @@ def dataset_metadata(dataset, recommendation_dirpart=recommendation_dirpart):
 
 
 def unstack_recommendations(df):
-    # Repeat each user_id for the length of their item_id:token list
+    "Explode recommendations into separate rows"
     unstacked_df = df.explode(["item_id:token", "score"]).reset_index(drop=True)
     return unstacked_df
 
@@ -78,6 +79,7 @@ def unstack_recommendations(df):
 def create_base_recommendations(
     recommender_dir, top_k_resample=top_k_resample, top_k_eval=top_k_eval
 ):
+    """Create DataFrames of top-k base recommendations"""
     with open(recommender_dir) as f:
         data = json.load(f)
 
@@ -121,6 +123,7 @@ def save_top_k(sorted_top_k_df, base_dir, reranking_method):
     grouped_data = (
         sorted_top_k_df.groupby("user_id:token")["item_id:token"].apply(list).to_dict()
     )
+    """Save top-k recommendations to a JSON file"""
 
     save_path = os.path.join(base_dir, reranking_method)
     os.makedirs(save_path, exist_ok=True)
@@ -133,6 +136,7 @@ def save_top_k(sorted_top_k_df, base_dir, reranking_method):
 
 
 def save_cp_metadata(base_dir, file, filename):
+    """Save CP metadata from the gridsearch to JSON"""
     save_path = os.path.join(base_dir, "cp")
     os.makedirs(save_path, exist_ok=True)
     file_path = os.path.join(save_path, f"{filename}.json")
@@ -152,6 +156,7 @@ def rerank_upd(
     train_data,
     calibrate_on="mean",
 ):
+    """Perform the UPD re-ranking algorithm."""
     checkin_df = train_data.copy()
 
     # Calculate item popularity
@@ -219,7 +224,8 @@ def rerank_upd(
 
 
 def open_ground_truth_user_group(dataset):
-    # Stays the same across all models
+    """Extract train, test and validation data and user groups"""
+
     train_data = pd.read_csv(
         f"{BASE_DIR}{dataset}_dataset/processed_data_recbole/{dataset}_sample.train.inter",
         sep="\t",
@@ -242,6 +248,7 @@ def open_ground_truth_user_group(dataset):
 
 
 def recommender_dir_combiner(dataset, modelpart):
+    """Combine the recommender directory with the dataset and model part"""
     top_k_dir = f"{BASE_DIR}{dataset}_dataset/{recommendation_dirpart}/{modelpart}/top_k_recommendations.json"
     recommendation_folder = (
         f"{BASE_DIR}{dataset}_dataset/{recommendation_dirpart}/{modelpart}"
@@ -250,8 +257,8 @@ def recommender_dir_combiner(dataset, modelpart):
 
 
 def calculate_user_popularity_distributions(df, item_popularity):
-    # df = df.merge(item_popularity, on="item_id:token", how="left")
-    # Calculate mean, median, and variance of `business_popularity` for each user
+    """Calculate user group popularity distributions"""
+
     user_stats = (
         df.groupby("user_id:token")[valid_popularity]
         .agg(["mean", "median", "var"])
@@ -299,6 +306,7 @@ def calculate_user_popularity_distributions(df, item_popularity):
 
 
 def get_profile_and_recommended_ratios_for_js(test_item_groups, test_user_profile):
+    """Get the recommended ratios and user profile ratios for the JS divergence calculation"""
     recommended_ratios_nested = test_item_groups.to_dict()
     recommended_ratios = {
         key: list(value.values())[0] for key, value in recommended_ratios_nested.items()
@@ -416,6 +424,7 @@ def marginal_relevances(
 
 
 def get_individual_user_data(df, user_profiles, user_id):
+    """Get data for a single user"""
     test_user_id = user_id
     test_recs = df.loc[df["user_id:token"] == test_user_id][
         "item_id:token"
@@ -441,6 +450,7 @@ def get_individual_user_data(df, user_profiles, user_id):
 
 
 def rerank_cp_all_users(df, user_profiles, top_k_eval, delta):
+    """Perform CP algorithm for all users"""
     reranked_results = {}
 
     for i, user_id in enumerate(df["user_id:token"].unique()):
@@ -471,6 +481,7 @@ def rerank_cp_all_users(df, user_profiles, top_k_eval, delta):
 
 
 def sample_user_groups(user_groups, sample_size=100):
+    """Sample small user groups for testing the CP implementation"""
     sampled_groups = {}
     for group, ids in user_groups.items():
         if len(ids) >= sample_size:
@@ -484,7 +495,7 @@ def sample_user_groups(user_groups, sample_size=100):
 
 
 def calculate_group_ratios(user_groups, df):
-    """Use for plotting"""
+    """Calculate group ratior, e.g. for plotting"""
     group_results = {}
 
     for group_name, user_ids in user_groups.items():
@@ -556,6 +567,7 @@ def cp_gridsearch(
     upts,
     recommendation_folder,
 ):
+    """Perform gridsearch for CP algorithm"""
     deltas = [0, 0.1, 0.3, 0.5, 0.7, 0.9, 1]
     results = {}
     gridsearch_best_deltas = {}
