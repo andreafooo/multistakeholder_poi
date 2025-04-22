@@ -191,6 +191,7 @@ def dataset_specific_preprocessing(dataset, DATASET_DIR):
 
 
 def filter_df(df, min_reviews_user=15, min_reviews_business=10):
+    """Remove cold users and items iteratively"""
     while True:
         user_counts = df["user_id:token"].value_counts()
         user_mask = df["user_id:token"].map(user_counts) >= min_reviews_user
@@ -213,6 +214,7 @@ def filter_df(df, min_reviews_user=15, min_reviews_business=10):
 def user_popularity_sample_calculator(
     checkin_df_filtered, poi_df, user_df, sep_num, checkin_df_timestamp
 ):
+    """Calculate the average popularity of each user and create samples of high, medium, and low popularity users"""
     # Calculate average popularity per user
     average_popularity_per_user = (
         checkin_df_filtered.groupby("user_id:token")["business_popularity:float"]
@@ -351,6 +353,7 @@ def user_id_token_adder(df, column_name_list=["user_id:token", "item_id:token"])
 
 
 def data_saver_recbole(df, framework, suffix, DATASET_DIR, dataset):
+    """Save the data in the format required by RecBole"""
     if not os.path.exists(DATASET_DIR + "processed_data_" + framework):
         os.makedirs(DATASET_DIR + "processed_data_" + framework)
 
@@ -362,6 +365,7 @@ def data_saver_recbole(df, framework, suffix, DATASET_DIR, dataset):
 
 
 def data_saver_capri(df, filename, DATASET_DIR):
+    """Save the data in the format required by CAPRI"""
     if not os.path.exists(DATASET_DIR + "processed_data_capri"):
         os.makedirs(DATASET_DIR + "processed_data_capri")
 

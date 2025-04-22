@@ -1,13 +1,10 @@
 import os
 import json
-from globals import BASE_DIR, available_datasets
+from globals import BASE_DIR, available_datasets, top_k_eval, recommendation_dirpart
 
 # Constants
-top_k_eval = 10
-general_models = ["BPR", "SimpleX"]
+general_models = ["BPR"]
 context_models = ["LORE", "USG"]
-recommendation_dirpart = "recommendations"
-
 ############################################################################################################
 
 
@@ -41,6 +38,7 @@ def process_top_k_json(input_file, output_file, k=top_k_eval):
 
 
 def dataset_metadata(dataset, recommendation_dirpart):
+    """Extract metadata for each dataset and model"""
     data = []
 
     # Ensure only directories are listed
@@ -91,6 +89,7 @@ def dataset_metadata(dataset, recommendation_dirpart):
 
 
 def create_model_directories(dataset, data, base_dir, recommendation_dirpart):
+    """Create model directories for each method"""
     model_directories = {}
     methods = ["baseline", "cp", "cp_min_js", "upd"]
 

@@ -12,3 +12,8 @@ datasets_for_recbole = [
 models_for_recbole = [
     "BPR"
 ]  # add general recommendation models as baseline (e.g. BPR, SimpleX, ItemKNN, etc.)
+
+top_k_resample = 150
+top_k_eval = 10
+valid_popularity = "item_pop"
+recommendation_dirpart = "recommendations"

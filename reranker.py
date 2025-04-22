@@ -1,7 +1,14 @@
 import pandas as pd
 import json
 import numpy as np
-from globals import BASE_DIR, available_datasets
+from globals import (
+    BASE_DIR,
+    available_datasets,
+    top_k_resample,
+    top_k_eval,
+    valid_popularity,
+    recommendation_dirpart,
+)
 import os
 import random
 import traceback
@@ -10,13 +17,11 @@ from evaluation_metrics import *
 pd.options.mode.copy_on_write = True
 
 
-# global settings
-top_k_resample = 150
-top_k_eval = 10
+# Constants
 gridsearch = False  # set to true for new datasets
 save_upd = False
-valid_popularity = "item_pop"
-recommendation_dirpart = "recommendations"
+
+######################################################
 
 
 # Define the datasets you want to process
@@ -265,22 +270,17 @@ def calculate_user_popularity_distributions(df, item_popularity):
         .reset_index()
     )
 
-    # Calculate normalized ratios of `item_pop_group` for each user
     pop_group_counts = (
         df.groupby(["user_id:token", "item_pop_group"]).size().unstack(fill_value=0)
     )
-
-    # Normalize by row sum to get ratios
     pop_group_ratios = pop_group_counts.div(
         pop_group_counts.sum(axis=1), axis=0
     ).reset_index()
 
-    # Merge the statistics and ratios into a single DataFrame
     user_pop_ratio_df = pd.merge(
         user_stats, pop_group_ratios, on="user_id:token", how="left"
     )
 
-    # Rename columns for clarity
     user_pop_ratio_df.rename(
         columns={
             "h": "h_ratio",
@@ -297,7 +297,6 @@ def calculate_user_popularity_distributions(df, item_popularity):
         df.groupby("user_id:token").size().reset_index(name="num_interactions")
     )
 
-    # Merge the num_interactions into the user_pop_ratio_df
     user_pop_ratio_df = pd.merge(
         user_pop_ratio_df, num_interactions, on="user_id:token", how="left"
     )
@@ -312,7 +311,6 @@ def get_profile_and_recommended_ratios_for_js(test_item_groups, test_user_profil
         key: list(value.values())[0] for key, value in recommended_ratios_nested.items()
     }
 
-    # Extract user profile ratios
     profile_ratios = {
         "h_ratio": test_user_profile.get("h_ratio", pd.Series([0])).iloc[0],
         "m_ratio": test_user_profile.get("m_ratio", pd.Series([0])).iloc[0],
