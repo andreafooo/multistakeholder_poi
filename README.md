@@ -11,13 +11,11 @@ Our results reveal that context-aware models cannot be considered a uniform solu
 
 ### Descriptive Statistics
 
-### RQ1: Independent Impact of Context-Aware and Calibration Methods
 
-| Evaluation |
+| Evaluation RQ1 & 2|
 | --- |
 | ![Evaluation](docs/images/evaluation.png)
 
-### RQ2: Combined Impact of Context-Aware and Calibration Methods
 
 ### RQ1 & 2: Item Distribution BPR, LORE & USG
 
