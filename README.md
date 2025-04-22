@@ -36,7 +36,7 @@ Our results reveal that context-aware models cannot be considered a uniform solu
 
 The manual below includes all necessary steps (data sample generation, preprocessing, saving data files for plug-in into recommendation frameworks, re-ranking for popularity bias mitigation, accuracy-based evaluation, and user-centered evaluation) to generate baseline and re-ranked POI recommendations and evaluate their performance. To facilitate the reproducibility of the recommendations, we use the recommender frameworks [RecBole](https://github.com/RUCAIBox/RecBole) for general recommender models and [CAPRI](https://github.com/CapriRecSys/CAPRI) for Context-Aware Point-of-Interest Recommendation. 
 
-#### Note: If you don't want to follow the entire pipeline, you can take a shortcut to the evaluation to perform this based on the results from the foursquaretky dataset.
+#### Note: If you don't want to follow the entire pipeline, you can take a shortcut to the "General Evaluation" to perform this based on the results from the foursquaretky dataset.
 
 ### Preprocessing
 
@@ -84,7 +84,7 @@ In the hyperopt package, in hyperopt/pyll/stochastic.py", line 100, in randint
     return rng.integers(low, high, size) --> exchange rng.integers for rng.randint
 
 
-#### CAPRI (To Do: Try it out with original CAPRI repo)
+#### CAPRI
 To use [CAPRI](https://github.com/CapriRecSys/CAPRI), clone the repository and create a virtual environment. Make sure to use Python 3.9x. 
 
 In the current repository, in the folder ```capri_context_recs``` you can find some files that need to be exchanged in the repository in order to fit our use case: 
@@ -101,12 +101,13 @@ In the current repository, in the folder ```capri_context_recs``` you can find s
 
 Note: In case of an error in CAPRI try: If you produce multiple recommendations with the same model and dataset, you may have to delete the files inside ```<CAPRI ROOT DIR>/<Models>/<model name>/savedModels```to avoid errors. If you receive an error regarding the dataSize, it may help to include an empty file named socialRelations.txt with the dataset files. Check out their docs [docs](https://capri.readthedocs.io/en/latest/index.html) for further information.
 
-### Popularity Calibration (Updates To Do)
+### Popularity Calibration
 
 * call ```postprocess_baseline_top_k.py```from the root directory. 
-* call ```reranker.py```from the root directory. gridsearch = False since it is already included for foursquaretky for the best CP-parameters. This produces results for $CP_H$ and $CP_\Im$ inside ```BASE_DIR/datasets/<dataset>_dataset/recommendations/<model name>```
+* call ```reranker.py```from the root directory. gridsearch = False since it is already included for foursquaretky for the best CP-parameters. If you wish to include additional datasets, set gridseatch = True to find the optimal lambda tradeoff parameters. This produces results for $CP_H$ and $CP_\Im$ inside ```BASE_DIR/datasets/<dataset>_dataset/recommendations/<model name>```
 
-#### General Evaluation (Updates To Do)
-The script ```offline_evaluation.ipynb```includes the full evaluation and plots. The evaluation metrics are found in ```evaluation_metrics.py```. (Updates To-Do)
+#### General Evaluation
+The script ```offline_evaluation.ipynb```includes the full evaluation and plots. The evaluation metrics are found in ```evaluation_metrics.py```. 
+The script ```descriptive_statistics.ipynb```gives you the stats for all available datasets and the script ```latex_table_creator.ipynb```helps to turn the results for RQ1 & 2 from the offline evaluation into latex tables. 
 
 
