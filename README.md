@@ -20,6 +20,7 @@ Our results reveal that context-aware models cannot be considered a uniform solu
 | Brightkite | Foursquare Tokyo |
 | --- | --- |
 | ![Brightkite](docs/images/popularity_distribution_brightkite.png) | ![Foursquare Tokyo](docs/images/popularity_distribution_foursquaretky.png) |
+
 | Gowalla | Yelp |
 | --- | --- |
 | ![Gowalla](docs/images/popularity_distribution_gowalla.png) | ![Yelp](docs/images/popularity_distribution_yelp.png) |
