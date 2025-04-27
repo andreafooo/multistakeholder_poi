@@ -16,12 +16,17 @@ Our results reveal that context-aware models cannot be considered a uniform solu
 
 
 
-| Evaluation RQ1 & 2|
+| Evaluation RQ1|
 | --- |
-| ![Evaluation](docs/images/evaluation.png)
+| ![Evaluation](docs/images/eval_rq1.png)
+
+| Evaluation RQ2|
+| --- |
+| ![Evaluation](docs/images/eval_rq2.png)
 
 
-### RQ1 & 2: Item Distribution BPR, LORE & USG
+
+### RQ1 & RQ2. Comparing the item group ratios (T, M, H) in the user group's $Ground Truth$ to the algorithms BPR $Base$ and LORE $Base$, and combined with the respective $CP_H$ and $CP_\Im$ ratios in the Yelp dataset (see Github for all distributions)
 
 | Brightkite | Foursquare Tokyo |
 | --- | --- |
