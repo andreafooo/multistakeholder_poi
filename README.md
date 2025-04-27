@@ -53,6 +53,7 @@ pip3 install -r requirements.txt  (To Do: Test entire pipeline with new venv & u
 ```
 3. Create/update the script ```globals.py``` in the root directory and add the line ```BASE_DIR = /path/to/your/base/directory/```. This base directory will be used to store the datasets and the recommender outputs. 
 
+Note: The dataset samples are provided for all four dataset, hence you can skip steps 4-5. 
 4. In the ```BASE_DIR``` proceed by creating dataset folders with the following structure ```<dataset_name>_dataset``` and then place the original, (unzipped) data files in this folder.
 
 Links to the original datasets used in this study: 
@@ -68,14 +69,15 @@ Generate Recommendations using [RecBole](https://github.com/RUCAIBox/RecBole) fo
 
 #### Recbole 
 
-* Inside the folder ```recbole_general_recs/dataset``` create a folder with the structure <\dataset name>_sample (e.g., foursquaretky_sample) & copy the files from your ```BASE_DIR/foursquaretky_dataset/processed_data_recbole``` into that folder. 
+1. Inside the folder ```recbole_general_recs/dataset``` create a folder with the structure <\dataset name>_sample (e.g., foursquaretky_sample) & copy the files from your ```BASE_DIR/foursquaretky_dataset/processed_data_recbole``` into that folder. 
 
-* Hyperparameter optimization: has already been done and saved to recbole_general_recs/config - if you wish to re-do it, cd to recbole_general_recs and run ```python3 config_hyperparameter_creator.py``` -- see hyper.test for the tested parameters
+2. Hyperparameter optimization: has already been done and saved to recbole_general_recs/config - if you wish to re-do it, cd to recbole_general_recs and run ```python3 config_hyperparameter_creator.py``` -- see hyper.test for the tested parameters
 
-* cd back to the project's root directory, run: ```python3 recbole_general_recs/recbole_full_casestudy.py```
+3. cd back to the project's root directory, run: ```python3 recbole_general_recs/recbole_full_casestudy.py```
 This creates a folder inside the BASE_DIR/<dataset> named "recommendations/BPR+timestamp including the config file that produced the recommendations, the general evaluation and the top_k_recommendations
 
-* Note: In case of an error in Recbole, try:
+4. Note: In case of an error in Recbole, try:
+```pip3 install hyperopt```
 ```pip3 install ray```
 ```pip3 install "ray[tune]"```
 In the recbole package in your virtual environment, comment out the line #from kmeans_pytorch import kmeans in the following path: recbole/model/general_recommender/ldiffrec.py
@@ -89,7 +91,7 @@ To use [CAPRI](https://github.com/CapriRecSys/CAPRI), clone the repository and c
 
 In the current repository, in the folder ```capri_context_recs``` you can find some files that need to be exchanged in the repository in order to fit our use case: 
 
-1. switch out the ```requirements.txt```in CAPRI with the one in ```capri_context_recs/requirements.txt`` and install the packages in your venv. 
+1. switch out the ```requirements.txt```in CAPRI with the one in ```capri_context_recs/requirements.txt`` and install the packages inside your venv. 
 
 2. switch out ```<CAPRI ROOT DIR>/config.py``` (because we added new data samples and must name them)
 3. switch out ```<CAPRI ROOT DIR>/Data/readDataSizes.py``` (because we added new data samples and must name them)
@@ -103,8 +105,8 @@ Note: In case of an error in CAPRI try: If you produce multiple recommendations 
 
 ### Popularity Calibration
 
-* call ```postprocess_baseline_top_k.py```from the root directory. 
-* call ```reranker.py```from the root directory. gridsearch = False since it is already included for foursquaretky for the best CP-parameters. If you wish to include additional datasets, set gridseatch = True to find the optimal lambda tradeoff parameters. This produces results for $CP_H$ and $CP_\Im$ inside ```BASE_DIR/datasets/<dataset>_dataset/recommendations/<model name>```
+1. call ```postprocess_baseline_top_k.py```from the root directory. 
+2. call ```reranker.py```from the root directory. gridsearch = False since it is already included for foursquaretky for the best CP-parameters. If you wish to include additional datasets, set gridseatch = True to find the optimal lambda tradeoff parameters. This produces results for $CP_H$ and $CP_\Im$ inside ```BASE_DIR/datasets/<dataset>_dataset/recommendations/<model name>```
 
 #### General Evaluation
 The script ```offline_evaluation.ipynb```includes the full evaluation and plots. The evaluation metrics are found in ```evaluation_metrics.py```. 
