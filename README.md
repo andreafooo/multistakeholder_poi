@@ -77,10 +77,10 @@ Generate Recommendations using [RecBole](https://github.com/RUCAIBox/RecBole) fo
 3. cd back to the project's root directory, run: ```python3 recbole_general_recs/recbole_full_casestudy.py```
 This creates a folder inside the ```BASE_DIR/<dataset>``` named "recommendations/BPR+timestamp including the config file that produced the recommendations, the general evaluation and the top_k_recommendations
 
-4. Note: In case of an error in Recbole, try:
-```pip3 install hyperopt```
-```pip3 install ray```
-```pip3 install "ray[tune]"```
+4. Note: In case of an error in Recbole, try: \
+```pip3 install hyperopt``` \
+```pip3 install ray```  \
+```pip3 install "ray[tune]"``` \
 In the recbole package in your virtual environment, comment out the line #from kmeans_pytorch import kmeans in the following path: recbole/model/general_recommender/ldiffrec.py
 
 In the hyperopt package, in hyperopt/pyll/stochastic.py", line 100, in randint
