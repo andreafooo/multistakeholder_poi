@@ -49,7 +49,7 @@ source venv/bin/activate
 ```
 2. Install the requirements 
 ```
-pip3 install -r requirements.txt  (To Do: Test entire pipeline with new venv & update requirements.txt)
+pip3 install -r requirements.txt
 ```
 3. Create/update the script ```globals.py``` in the root directory and add the line ```BASE_DIR = /path/to/your/base/directory/```. This base directory will be used to store the datasets and the recommender outputs. 
 
@@ -69,12 +69,12 @@ Generate Recommendations using [RecBole](https://github.com/RUCAIBox/RecBole) fo
 
 #### Recbole 
 
-1. Inside the folder ```recbole_general_recs/dataset``` create a folder with the structure <\dataset name>_sample (e.g., foursquaretky_sample) & copy the files from your ```BASE_DIR/foursquaretky_dataset/processed_data_recbole``` into that folder. 
+1. Inside the folder ```recbole_general_recs/dataset``` create a folder with the structure ```<dataset name>_sample``` (e.g., foursquaretky_sample) & copy the files from your ```BASE_DIR/foursquaretky_dataset/processed_data_recbole``` into that folder. 
 
 2. Hyperparameter optimization: has already been done and saved to recbole_general_recs/config - if you wish to re-do it, cd to recbole_general_recs and run ```python3 config_hyperparameter_creator.py``` -- see hyper.test for the tested parameters
 
 3. cd back to the project's root directory, run: ```python3 recbole_general_recs/recbole_full_casestudy.py```
-This creates a folder inside the BASE_DIR/<dataset> named "recommendations/BPR+timestamp including the config file that produced the recommendations, the general evaluation and the top_k_recommendations
+This creates a folder inside the ```BASE_DIR/<dataset>``` named "recommendations/BPR+timestamp including the config file that produced the recommendations, the general evaluation and the top_k_recommendations
 
 4. Note: In case of an error in Recbole, try:
 ```pip3 install hyperopt```
