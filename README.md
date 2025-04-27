@@ -53,7 +53,7 @@ pip3 install -r requirements.txt
 ```
 3. Create/update the script ```globals.py``` in the root directory and add the line ```BASE_DIR = /path/to/your/base/directory/```. This base directory will be used to store the datasets and the recommender outputs. 
 
-Note: The dataset samples are provided for all four dataset, hence you can skip steps 4-5. \\
+Note: The dataset samples are provided for all four dataset, hence you can skip steps 4-5. \
 
 4. In the ```BASE_DIR``` proceed by creating dataset folders with the following structure ```<dataset_name>_dataset``` and then place the original, (unzipped) data files in this folder.
 
