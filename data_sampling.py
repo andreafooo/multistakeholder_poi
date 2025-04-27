@@ -660,12 +660,15 @@ def main():
         test_df["checkin_count:float"] = test_df["checkin_count:float"].astype(int)
         val_df["checkin_count:float"] = val_df["checkin_count:float"].astype(int)
 
+        empty_df_social_rel = pd.DataFrame()
+
         data_saver_capri(checkin_df_timestamp, "checkins", DATASET_DIR)
         data_saver_capri(datasize_capri, "dataSize", DATASET_DIR)
         data_saver_capri(poi_df_sample_capri, "poiCoos", DATASET_DIR)
         data_saver_capri(train_df, "train", DATASET_DIR)
         data_saver_capri(val_df, "tune", DATASET_DIR)
         data_saver_capri(test_df, "test", DATASET_DIR)
+        data_saver_capri(empty_df_social_rel, "socialRelations", DATASET_DIR)
 
 
 if __name__ == "__main__":
