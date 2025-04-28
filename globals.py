@@ -4,7 +4,6 @@ available_datasets = [
 
 BASE_DIR = "./datasets/"
 
-
 datasets_for_recbole = [
     "foursquaretky_sample"
 ]  # add datasets for recbole from above with "_sample" suffix - make sure to add them to recbole_general_recs/dataset
