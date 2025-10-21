@@ -1,6 +1,7 @@
 # Exploring the Effect of Context-Awareness and Popularity Calibration on Popularity Bias in POI Recommendations
 
-
+## Link to Paper: 
+https://dl.acm.org/doi/10.1145/3705328.3748017
 ## Abstract
 
 Point-of-interest (POI) recommender systems help users discover relevant locations, but their effectiveness is often compromised by popularity bias, which disadvantages less popular yet potentially meaningful places. This paper addresses the challenge by evaluating the effectiveness of context-aware models and calibrated popularity techniques as strategies for mitigating popularity bias. Using four real-world POI datasets (Brightkite, Foursquare, Gowalla, Yelp), we analyze the individual and combined effects of these approaches on recommendation accuracy and popularity bias.
