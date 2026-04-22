@@ -1,0 +1,159 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "poi-rs-popbias_mitigation"
+version = "1.0.0"
+description = "POI Recommendation with Popularity Bias Mitigation using RecBole and CAPRI"
+readme = "README.md"
+requires-python = ">=3.9,<3.12"
+license = {text = "MIT"}
+authors = [
+    {name = "Andrea Forster", email = "aforster@know-center.at"}
+]
+keywords = ["recommendation systems", "POI", "popularity bias", "re-ranking", "RecBole", "CAPRI"]
+
+dependencies = [
+    # Core RecBole
+    "recbole==1.2.0",
+    
+    # Hyperparameter optimization
+    "hyperopt==0.2.7",
+    "ray[tune]==2.44.1",
+    
+    # Scientific computing
+    "numpy==1.26.4",
+    "pandas==2.2.2",
+    "scipy==1.15.2",
+    "scikit-learn==1.6.1",
+    
+    # Deep learning
+    "torch==2.3.1",
+    
+    # Visualization
+    "matplotlib==3.10.1",
+    "seaborn==0.13.2",
+    "plotly==6.0.1",
+    
+    # Statistics
+    "statsmodels==0.14.4",
+    "pingouin==0.5.5",
+    
+    # Data processing
+    "PyYAML==6.0.2",
+    "tqdm==4.67.1",
+    
+    # Utilities
+    "colorlog==4.7.2",
+    "tabulate==0.9.0",
+]
+
+[project.optional-dependencies]
+# Full dependency set from requirements.txt
+all = [
+    "absl-py==2.2.2",
+    "aiosignal==1.3.2",
+    "attrs==25.3.0",
+    "certifi==2025.1.31",
+    "charset-normalizer==3.4.1",
+    "click==8.1.8",
+    "cloudpickle==3.1.1",
+    "colorama==0.4.4",
+    "contourpy==1.3.2",
+    "cycler==0.12.1",
+    "filelock==3.18.0",
+    "fonttools==4.57.0",
+    "frozenlist==1.6.0",
+    "fsspec==2025.3.2",
+    "future==1.0.0",
+    "grpcio==1.71.0",
+    "idna==3.10",
+    "Jinja2==3.1.6",
+    "joblib==1.4.2",
+    "jsonschema==4.23.0",
+    "jsonschema-specifications==2024.10.1",
+    "kiwisolver==1.4.8",
+    "Markdown==3.8",
+    "MarkupSafe==3.0.2",
+    "mpmath==1.3.0",
+    "msgpack==1.1.0",
+    "narwhals==1.35.0",
+    "networkx==3.4.2",
+    "packaging==25.0",
+    "pandas_flavor==0.7.0",
+    "patsy==1.0.1",
+    "pillow==11.2.1",
+    "protobuf==6.31.1",
+    "py4j==0.10.9.9",
+    "pyarrow==19.0.1",
+    "pyparsing==3.2.3",
+    "python-dateutil==2.9.0.post0",
+    "pytz==2025.2",
+    "referencing==0.36.2",
+    "requests==2.32.3",
+    "rpds-py==0.24.0",
+    "six==1.17.0",
+    "sympy==1.13.1",
+    "tensorboard==2.19.0",
+    "tensorboard-data-server==0.7.2",
+    "tensorboardX==2.6.2.2",
+    "texttable==1.7.0",
+    "thop==0.1.1.post2209072238",
+    "threadpoolctl==3.6.0",
+    "typing_extensions==4.13.2",
+    "tzdata==2025.2",
+    "urllib3==2.4.0",
+    "Werkzeug==3.1.3",
+    "xarray==2025.3.1",
+]
+
+# For Jupyter notebooks
+notebooks = [
+    "jupyter>=1.0.0",
+    "ipykernel>=6.0.0",
+    "notebook>=6.4.0",
+    "ipywidgets>=8.0.0",
+]
+
+# Development tools
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=3.0.0",
+    "black>=22.0.0",
+    "flake8>=4.0.0",
+    "isort>=5.10.0",
+]
+
+[project.urls]
+Repository = "https://github.com/andreafooo/POI_RS_PopBias_Mitigation"
+
+[tool.setuptools]
+py-modules = []
+
+[tool.black]
+line-length = 100
+target-version = ['py39', 'py310', 'py311']
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | venv
+  | build
+  | dist
+  | datasets
+  | recbole_general_recs/dataset
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+skip_gitignore = true
+known_first_party = ["evaluation_metrics", "globals"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --cov --cov-report=html --cov-report=term"

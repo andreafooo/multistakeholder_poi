@@ -10,3 +10,4 @@ log_tensorboard
 hyper.result
 venv
 requirements_old_venv.txt
+poi_rs_popbias_mitigation.egg-info
