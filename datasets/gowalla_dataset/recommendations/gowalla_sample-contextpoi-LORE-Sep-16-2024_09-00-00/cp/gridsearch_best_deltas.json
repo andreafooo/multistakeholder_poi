@@ -1,0 +1,32 @@
+{
+    "ndcg": {
+        "high": 0.9,
+        "medium": 0.1,
+        "low": 0.3,
+        "all": 0.1
+    },
+    "arp": {
+        "high": 0.5,
+        "medium": 0,
+        "low": 0,
+        "all": 0
+    },
+    "harmonic_mean": {
+        "high": 0.9,
+        "medium": 0.1,
+        "low": 0.3,
+        "all": 0.1
+    },
+    "js": {
+        "high": 0.9,
+        "medium": 1,
+        "low": 1,
+        "all": 1
+    },
+    "poplift": {
+        "high": 0.9,
+        "medium": 0,
+        "low": 0,
+        "all": 0
+    }
+}
