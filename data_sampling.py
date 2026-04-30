@@ -357,8 +357,7 @@ def data_saver_recbole(df, framework, suffix, DATASET_DIR, dataset):
     if not os.path.exists(DATASET_DIR + "processed_data_" + framework):
         os.makedirs(DATASET_DIR + "processed_data_" + framework)
 
-    df.to_csv(
-        f"{DATASET_DIR}processed_data_{framework}/{dataset}_sample.{suffix}",
+    df.to_csv(os.path.join(f"{DATASET_DIR}processed_data_{framework}, {dataset}_sample.{suffix}"),
         sep="\t",
         index=False,
     )
@@ -369,8 +368,8 @@ def data_saver_capri(df, filename, DATASET_DIR):
     if not os.path.exists(DATASET_DIR + "processed_data_capri"):
         os.makedirs(DATASET_DIR + "processed_data_capri")
 
-    df.to_csv(
-        DATASET_DIR + "processed_data_capri/" + filename + ".txt",
+    df.to_csv(os.path.join(
+        DATASET_DIR, "processed_data_capri", filename + ".txt"),
         sep="\t",
         index=False,
         header=False,
@@ -392,7 +391,7 @@ def user_id_cleaner(df, column_name_list=["user_id:token", "item_id:token"]):
 
 def main():
     for dataset in available_datasets:
-        DATASET_DIR = f"{BASE_DIR}{dataset}_dataset/"
+        DATASET_DIR = os.path.join(f"{BASE_DIR}, {dataset}_dataset")
         print(DATASET_DIR)
         if dataset not in available_datasets:
             print(f"Dataset '{dataset}' is not available.")
@@ -491,7 +490,7 @@ def main():
         user_id_popularity["low"] = low_pop_user_df_sample["user_id:token"].tolist()
         json.dump(
             user_id_popularity,
-            open(f"{DATASET_DIR}/{dataset}_user_id_popularity.json", "w"),
+            open(os.path.join(DATASET_DIR, f"{dataset}_user_id_popularity.json"), "w"),
         )
         checkin_df_sample["review_id:token"] = range(1, len(checkin_df_sample) + 1)
         checkin_df_sample = convert_to_unix_timestamp(

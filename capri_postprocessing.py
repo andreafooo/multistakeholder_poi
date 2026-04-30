@@ -7,7 +7,7 @@ from globals import BASE_DIR, available_datasets
 # We convert the format to enable a unified evaluation process.
 
 for dataset in available_datasets:
-    OUTPUT_DIR = f"{BASE_DIR}{dataset}_dataset/recommendations/"
+    OUTPUT_DIR = os.path.join(BASE_DIR, f"{dataset}_dataset", "recommendations")
     recs = os.listdir(OUTPUT_DIR)
 
     if ".DS_Store" in recs:
