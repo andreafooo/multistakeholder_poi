@@ -11,3 +11,13 @@ hyper.result
 venv
 requirements_old_venv.txt
 poi_rs_popbias_mitigation.egg-info
+datasets/foursquaretky_dataset/plots/
+datasets/brightkite_dataset/plots/
+datasets/gowalla_dataset/plots/
+datasets/yelp_dataset/plots/
+*LightGCN/
+*NISER/
+datasets/brightkite_dataset/recommendations/
+datasets/yelp_dataset/recommendations/
+datasets/gowalla_dataset/recommendations/
+datasets/foursquaretky_dataset/recommendations/
