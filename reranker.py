@@ -29,12 +29,12 @@ def dataset_metadata(dataset, recommendation_dirpart=recommendation_dirpart):
     """Extract metadata for each dataset and model"""
     data = []
 
-    recs = os.listdir(f"{BASE_DIR}{dataset}_dataset/{recommendation_dirpart}")
+    recs = os.listdir(os.path.join(BASE_DIR, f"{dataset}_dataset, recommendation_dirpart"))
     if ".DS_Store" in recs:
         recs.remove(".DS_Store")
 
     for dir in recs:
-        json_file = f"{BASE_DIR}{dataset}_dataset/{recommendation_dirpart}/{dir}/general_evaluation.json"
+        json_file = os.path.join(BASE_DIR, f"{dataset}_dataset", recommendation_dirpart, dir, "general_evaluation.json")
 
         with open(json_file, "r") as f:
             eval_data = json.load(f)
@@ -231,21 +231,12 @@ def rerank_upd(
 def open_ground_truth_user_group(dataset):
     """Extract train, test and validation data and user groups"""
 
-    train_data = pd.read_csv(
-        f"{BASE_DIR}{dataset}_dataset/processed_data_recbole/{dataset}_sample.train.inter",
-        sep="\t",
-    )
-    test_data = pd.read_csv(
-        f"{BASE_DIR}{dataset}_dataset/processed_data_recbole/{dataset}_sample.test.inter",
-        sep="\t",
-    )
-    valid_data = pd.read_csv(
-        f"{BASE_DIR}{dataset}_dataset/processed_data_recbole/{dataset}_sample.valid.inter",
-        sep="\t",
-    )
+    train_data = pd.read_csv(os.path.join(BASE_DIR, f"{dataset}_dataset", "processed_data_recbole", f"{dataset}_sample.train.inter"), sep="\t")
+    valid_data = pd.read_csv(os.path.join(BASE_DIR, f"{dataset}_dataset", "processed_data_recbole", f"{dataset}_sample.test.inter"), sep="\t")
+    test_data = pd.read_csv(os.path.join(BASE_DIR, f"{dataset}_dataset", "processed_data_recbole", f"{dataset}_sample.valid.inter"), sep="\t")
     # valid_data = pd.read_csv(f"{BASE_DIR}{dataset}_dataset/processed_data_recbole/{dataset}_sample.valid.inter", sep="\t") # originale struktur !!!
     train_data = pd.concat([train_data, valid_data])
-    user_group_dir = f"{BASE_DIR}{dataset}_dataset/{dataset}_user_id_popularity.json"
+    user_group_dir = os.path.join(BASE_DIR, f"{dataset}_dataset", f"{dataset}_user_id_popularity.json")
     with open(user_group_dir) as f:
         user_groups = json.load(f)
 
@@ -254,9 +245,9 @@ def open_ground_truth_user_group(dataset):
 
 def recommender_dir_combiner(dataset, modelpart):
     """Combine the recommender directory with the dataset and model part"""
-    top_k_dir = f"{BASE_DIR}{dataset}_dataset/{recommendation_dirpart}/{modelpart}/top_k_recommendations.json"
+    top_k_dir = os.path.join(BASE_DIR, f"{dataset}_dataset", recommendation_dirpart, modelpart, "top_k_recommendations.json")
     recommendation_folder = (
-        f"{BASE_DIR}{dataset}_dataset/{recommendation_dirpart}/{modelpart}"
+        os.path.join(BASE_DIR, f"{dataset}_dataset", recommendation_dirpart, modelpart)
     )
     return top_k_dir, recommendation_folder
 
