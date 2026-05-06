@@ -1,5 +1,6 @@
 import os
 import json
+from pathlib import Path
 from globals import BASE_DIR, available_datasets, top_k_eval, recommendation_dirpart
 
 # Constants
@@ -38,37 +39,29 @@ def process_top_k_json(input_file, output_file, k=top_k_eval):
 
 
 def dataset_metadata(dataset, recommendation_dirpart):
-    """Extract metadata for each dataset and model"""
+    """Extract metadata for each dataset and model from directory names only."""
     data = []
 
     # Ensure only directories are listed
     recs = [
         d
-        for d in os.listdir(f"{BASE_DIR}{dataset}_dataset/{recommendation_dirpart}")
+        for d in os.listdir(os.path.join(BASE_DIR, f"{dataset}_dataset", recommendation_dirpart))
         if os.path.isdir(
             os.path.join(BASE_DIR, f"{dataset}_dataset", recommendation_dirpart, d)
         )
     ]
 
     for dir in recs:
-        json_file = f"{BASE_DIR}{dataset}_dataset/{recommendation_dirpart}/{dir}/general_evaluation.json"
-
-        if not os.path.exists(json_file):
-            # print(f"Skipping {json_file} - File not found.")
-            continue
-
-        with open(json_file, "r") as f:
-            eval_data = json.load(f)
-
-        test_results = eval_data.get("test_result", {})
+        test_results = {}
         test_results["directory"] = dir
 
-        # Extracting model and type
-        test_results["dataset"] = dir.split("-")[0]
+        # Extracting dataset, model, model_type, and date from directory name
         parts = dir.split("-")
 
-        if parts[1] == "debias":
-            test_results["model_type"] = "debias"
+        test_results["dataset"] = parts[0]
+
+        if parts[1] == "socialchoice":
+            test_results["model_type"] = "socialchoice"
             test_results["model"] = parts[2]
             test_results["date"] = "-".join(parts[3:])
         elif parts[1] == "contextpoi":
@@ -91,19 +84,25 @@ def dataset_metadata(dataset, recommendation_dirpart):
 def create_model_directories(dataset, data, base_dir, recommendation_dirpart):
     """Create model directories for each method"""
     model_directories = {}
-    methods = ["baseline", "cp", "cp_min_js", "upd"]
-
-    def recommender_dir_combiner(dataset, modelpart, method):
-        return f"{base_dir}{dataset}_dataset/{recommendation_dirpart}/{modelpart}/{method + '/' if method != 'baseline' else ''}top_k_recommendations.json"
+    methods = ["baseline", "cp", "cp_min_js"]
 
     for result in data:
         model_name = result["model"]
+        modelpart = result["directory"]
         model_directories[model_name] = {}
-
+        
         for method in methods:
-            model_directories[model_name][method] = recommender_dir_combiner(
-                dataset, result["directory"], method
-            )
+            # Build the path step by step
+            path = Path(base_dir) / f"{dataset}_dataset" / recommendation_dirpart / modelpart
+            
+            # Add method subdirectory only if not baseline
+            if method != "baseline":
+                path = path / method
+            
+            # Add the filename
+            path = path / "top_k_recommendations.json"
+            
+            model_directories[model_name][method] = path
 
     return model_directories
 

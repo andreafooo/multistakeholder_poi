@@ -4,13 +4,14 @@ from recbole.quick_start import load_data_and_model
 import pandas as pd
 import json
 import os
+import pathlib
 import yaml
 import glob
 
 import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from globals import BASE_DIR, datasets_for_recbole, models_for_recbole
+from globals import PROJECT_BASE, BASE_DIR, datasets_for_recbole, models_for_recbole
 
 """ In case of an error, comment out #from kmeans_pytorch import kmeans in the recbole package: recbole/model/general_recommender/ldiffrec.py """
 
@@ -52,21 +53,21 @@ def run_configurations(config):
     with open(config, "r") as file:
         config_dict = yaml.safe_load(file)
 
-    OUTPUT_DIR = (
-        f"{BASE_DIR}{config_dict['dataset'].split('_')[0]}_dataset/recommendations/"
-    )
+    OUTPUT_DIR = os.path.join(
+        BASE_DIR, f"{config_dict['dataset'].split('_')[0]}_dataset", "recommendations")
+    
 
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
 
-    df = pd.read_csv(
-        f"recbole_general_recs/dataset/{config_dict['dataset']}/{config_dict['dataset']}.test.inter",
+    df = pd.read_csv(os.path.join(
+        "recbole_general_recs", "dataset", config_dict['dataset'], f"{config_dict['dataset']}.test.inter"),
         sep="\t",
     )
     user_ids = list(set(df["user_id:token"].values.tolist()))
 
     config, model, dataset, train_data, valid_data, test_data = load_data_and_model(
-        model_file=f"saved/{model_file}",
+        model_file=os.path.join("saved", model_file)
     )
 
     error_count = 0
@@ -110,20 +111,19 @@ def run_configurations(config):
 
     model_file_cleaned = model_file.split(".")[0]
 
-    FINAL_OUTPUT_DIR = (
-        f"{OUTPUT_DIR + config_dict['dataset'] + '-' + model_file_cleaned}/"
-    )
+    FINAL_OUTPUT_DIR = os.path.join(OUTPUT_DIR, config_dict['dataset'] + '-' + model_file_cleaned)
+    
 
     if not os.path.exists(FINAL_OUTPUT_DIR):
         os.makedirs(FINAL_OUTPUT_DIR)
 
-    with open(f"{FINAL_OUTPUT_DIR}top_k_recommendations.json", "w") as f:
+    with open(os.path.join(FINAL_OUTPUT_DIR, "top_k_recommendations.json"), "w") as f:
         json.dump(recommendations, f, indent=4)
 
-    with open(f"{FINAL_OUTPUT_DIR}config.yaml", "w") as f:
+    with open(os.path.join(FINAL_OUTPUT_DIR, "config.yaml"), "w") as f:
         yaml.dump(config_dict, f, indent=4)
 
-    with open(f"{FINAL_OUTPUT_DIR}general_evaluation.json", "w") as f:
+    with open(os.path.join(FINAL_OUTPUT_DIR, "general_evaluation.json"), "w") as f:
         json.dump(output_dict, f, indent=4)
 
 
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     # config = "config_test.yaml" # To-Do: add if clause if there is no specific config_test because they are only created after hyperopt
     for dataset in datasets_for_recbole:
         for model in models_for_recbole:
-            config = f"recbole_general_recs/config/{dataset}/{model}/config_test.yaml"
+            config = os.path.join(PROJECT_BASE, "recbole_general_recs", "config", dataset, model, "config_test.yaml")
             run_configurations(config)
             print(f"Finished {model} for {dataset}")
             print("--------------------------------------------------------")
