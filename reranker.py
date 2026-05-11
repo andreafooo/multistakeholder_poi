@@ -13,6 +13,7 @@ import os
 import random
 import traceback
 from evaluation_metrics import *
+from tqdm import tqdm
 
 pd.options.mode.copy_on_write = True
 
@@ -29,48 +30,53 @@ def dataset_metadata(dataset, recommendation_dirpart=recommendation_dirpart):
     """Extract metadata for each dataset and model"""
     data = []
 
-    recs = os.listdir(os.path.join(BASE_DIR, f"{dataset}_dataset, recommendation_dirpart"))
+    recs = os.listdir(os.path.join(BASE_DIR, f"{dataset}_dataset", recommendation_dirpart))
     if ".DS_Store" in recs:
         recs.remove(".DS_Store")
 
+    
     for dir in recs:
-        json_file = os.path.join(BASE_DIR, f"{dataset}_dataset", recommendation_dirpart, dir, "general_evaluation.json")
-
-        with open(json_file, "r") as f:
-            eval_data = json.load(f)
-
-        # Extract the test_result data and flatten it
-        test_results = eval_data.get("test_result", {})
-        test_results["directory"] = dir
-
-        test_results["dataset"] = test_results["directory"].split("-")[0]
-        test_results["model"] = test_results["directory"].split("-")
-        if test_results["directory"].split("-")[1] == "debias":
-            test_results["model_type"] = "debias"
-            test_results["date"] = "-".join(test_results["directory"].split("-")[3:])
-
-        elif test_results["directory"].split("-")[1] == "contextpoi":
-            test_results["model_type"] = "contextpoi"
-            test_results["date"] = "-".join(test_results["directory"].split("-")[3:])
+        if "socialchoice" in dir:
+            continue
+            
         else:
-            test_results["model_type"] = "general"
-            test_results["date"] = "-".join(test_results["directory"].split("-")[2:])
+            json_file = os.path.join(BASE_DIR, f"{dataset}_dataset", recommendation_dirpart, dir, "general_evaluation.json")
 
-        if test_results["model_type"] == "debias":
-            test_results["model"] = test_results["model"][2]
+            with open(json_file, "r") as f:
+                eval_data = json.load(f)
 
-        elif test_results["model_type"] == "contextpoi":
-            test_results["model"] = test_results["model"][2]
+            # Extract the test_result data and flatten it
+            test_results = eval_data.get("test_result", {})
+            test_results["directory"] = dir
 
-        else:
-            test_results["model"] = test_results["model"][1]
+            test_results["dataset"] = test_results["directory"].split("-")[0]
+            test_results["model"] = test_results["directory"].split("-")
+            if test_results["directory"].split("-")[1] == "debias":
+                test_results["model_type"] = "debias"
+                test_results["date"] = "-".join(test_results["directory"].split("-")[3:])
 
-        if test_results["model"] == "MF":
-            test_results["model_type"] = "general (via RecBole debias)"
+            elif test_results["directory"].split("-")[1] == "contextpoi":
+                test_results["model_type"] = "contextpoi"
+                test_results["date"] = "-".join(test_results["directory"].split("-")[3:])
+            else:
+                test_results["model_type"] = "general"
+                test_results["date"] = "-".join(test_results["directory"].split("-")[2:])
 
-        test_results["dataset"] = test_results["dataset"].split("_")[0]
-        if test_results["model_type"] != "debias":
-            data.append(test_results)
+            if test_results["model_type"] == "debias":
+                test_results["model"] = test_results["model"][2]
+
+            elif test_results["model_type"] == "contextpoi":
+                test_results["model"] = test_results["model"][2]
+
+            else:
+                test_results["model"] = test_results["model"][1]
+
+            if test_results["model"] == "MF":
+                test_results["model_type"] = "general (via RecBole debias)"
+
+            test_results["dataset"] = test_results["dataset"].split("_")[0]
+            if test_results["model_type"] != "debias":
+                data.append(test_results)
 
     return data
 
@@ -90,7 +96,7 @@ def create_base_recommendations(
 
     base_recommendations = []
 
-    for user, items in data.items():
+    for user, items in tqdm(data.items(), desc="Creating base recommendations"):
         for item in items:
             base_recommendations.append(
                 {
@@ -442,7 +448,7 @@ def rerank_cp_all_users(df, user_profiles, top_k_eval, delta):
     """Perform CP algorithm for all users"""
     reranked_results = {}
 
-    for i, user_id in enumerate(df["user_id:token"].unique()):
+    for i, user_id in enumerate(tqdm(df["user_id:token"].unique(), desc="Re-ranking users")):
         (
             test_scores,
             test_recs,
@@ -560,7 +566,7 @@ def cp_gridsearch(
     deltas = [0, 0.1, 0.3, 0.5, 0.7, 0.9, 1]
     results = {}
     gridsearch_best_deltas = {}
-    for i, delta in enumerate(deltas):
+    for i, delta in enumerate(tqdm(deltas, desc="Grid search deltas")):
         print("Processing delta:", delta)
         results[delta] = {}
         reranked_df = rerank_cp_all_users(
@@ -638,9 +644,9 @@ def cp_gridsearch(
 
 
 def main(available_datasets):
-    for dataset in available_datasets:
+    for dataset in tqdm(available_datasets, desc="Processing datasets"):
         data = dataset_metadata(dataset)
-        for result in data:
+        for result in tqdm(data, desc=f"Processing models for {dataset}", leave=False):
             try:
                 print(
                     f"Processing model {result['model']} on dataset {result['dataset']}"
@@ -734,7 +740,7 @@ def main(available_datasets):
                 print(f"Best deltas: {cp_gridsearch_best_deltas}")
 
                 cp_dfs = []
-                for group in user_groups.keys():
+                for group in tqdm(user_groups.keys(), desc="Processing CP groups", leave=False):
                     if group != "all":
                         base_resample_group = base_resample.loc[
                             base_resample["user_id:token"].isin(user_groups[group])
@@ -754,7 +760,7 @@ def main(available_datasets):
                 save_top_k(reranked_df, basedir, "cp")
 
                 cp_min_dfs = []
-                for group in user_groups.keys():
+                for group in tqdm(user_groups.keys(), desc="Processing CP min JS groups", leave=False):
                     if group != "all":
                         base_resample_group = base_resample.loc[
                             base_resample["user_id:token"].isin(user_groups[group])
