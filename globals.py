@@ -1,7 +1,7 @@
 import os
 
 available_datasets = [
-    "foursquaretky",
+    "yelp", "gowalla", "brightkite"
 ]  # choose betweeen "yelp", "gowalla", "foursquaretky", and "brightkite" and make sure to add the datasets to your BASE_DIR
 
 PROJECT_BASE = os.path.dirname(os.path.abspath(__file__))
