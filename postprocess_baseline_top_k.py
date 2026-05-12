@@ -1,7 +1,7 @@
 import os
 import json
 from pathlib import Path
-from globals import BASE_DIR, available_datasets, top_k_eval, recommendation_dirpart
+from globals import BASE_DIR, available_datasets, top_k_eval, top_k_resample, recommendation_dirpart
 
 # Constants
 general_models = ["BPR"]
@@ -116,7 +116,7 @@ def main():
 
         for result in data:
             input_path = model_dirs[result["model"]]["baseline"]
-            directory = input_path.rsplit("/", 1)[0]
+            directory = input_path.parent
             output_dir = os.path.join(directory, "baseline")
             output_path = os.path.join(output_dir, "top_k_recommendations.json")
             process_top_k_json(input_path, output_path, k=top_k_eval)
