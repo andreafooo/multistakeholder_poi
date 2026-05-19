@@ -329,7 +329,7 @@ def rerank_for_user(
     score_count = 0
 
     # Iteratively build the re-ranked list for the user
-    for i in range(k):
+    for i in range(min(k, len(initial_list))):
         criterion = marginal_relevances(
             score_count,
             scores,
