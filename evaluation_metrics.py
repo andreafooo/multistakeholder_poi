@@ -109,7 +109,8 @@ def jensen_shannon(profile_ratios, recommended_ratios):
 
 
 def evaluation_user_group_means(
-    ndcg_scores, arp_scores, poplift_scores, user_groups, top_k_df
+    ndcg_scores, arp_scores, poplift_scores, user_groups, top_k_df,
+    total_catalog_size=None  # new parameter
 ):
     group_means = {}
     group_ndcg_scores = {}
@@ -135,7 +136,7 @@ def evaluation_user_group_means(
 
         group_top_k_df = top_k_df[top_k_df["user_id:token"].isin(user_ids)]
         flattened_item_ids = group_top_k_df["item_id:token"].values.tolist()
-        num_items = group_top_k_df["item_id:token"].nunique()
+        num_items = total_catalog_size or group_top_k_df["item_id:token"].nunique()
 
         group_means[group_name] = {
             "ndcg": sum(group_ndcg_scores[group_name].values())
@@ -152,21 +153,22 @@ def evaluation_user_group_means(
 
 def gini_index(item_ids, num_items):
     """
-    Computes the Gini-index for the given recommendations
-    Source: https://github.com/rUngruh/mitigatingPopularityBiasInMRS
+    Computes the Gini index over item exposure distribution.
+    0 = perfectly equal exposure, 1 = one item gets all exposure.
+    
+    Args:
+        item_ids: flat list of recommended item ids (with repetition)
+        num_items: total number of unique items in the catalog
     """
-    sum_ratio = 0
     counts = list(Counter(item_ids).values())
-    counts += [0] * (num_items - len(counts))
-    L_len = sum(counts)
+    counts += [0] * (num_items - len(counts))  # unobserved items get 0
+    counts.sort()                               # ascending order required
 
-    counts.sort()
-    occ_sum = 0
-    for k, count in enumerate(counts):
-        occ = count / L_len
-        occ_sum += occ
-        sum_ratio += ((num_items - (k + 1) + 1) / num_items) * occ
+    M = num_items
+    total = sum(counts)
 
-    gini = 1 - ((2 / occ_sum) * sum_ratio)
+    if total == 0 or M == 0:
+        return 0.0
 
+    gini = (M + 1 - 2 * sum((M - k) * c / total for k, c in enumerate(counts))) / M
     return gini
