@@ -21,14 +21,18 @@ from globals import (
 
 
 class GeoReranker:
-    def __init__(self, coordinates_df):
+    def __init__(self, coordinates_df, min_distance_km: float = 0.005):
         """
         Parameters
         ----------
-        coordinates_df : pd.DataFrame
+        coordinates_df  : pd.DataFrame
             Must contain columns: item_id:token, lat:float, lon:float
+        min_distance_km : float
+            Minimum distance (km) a candidate must be from ALL already-selected
+            items. Candidates closer than this threshold are skipped to avoid
+            near-duplicate recommendations. Default: 5 meters.
         """
-        # Build lookup dict: item_id str -> (lat, lon)
+        self.min_distance_km = min_distance_km
         self.coords = dict(
             zip(
                 coordinates_df["item_id:token"],
@@ -66,27 +70,19 @@ class GeoReranker:
     # --- core greedy nearest-neighbour traversal ---
     def _geo_select(self, candidates, relevance_scores, top_k):
         """
-        Greedy geographic traversal.
+        Greedy geographic traversal with minimum-distance deduplication.
 
         1. Anchor on the highest BPR relevance score item.
         2. From the last selected item, pick the geographically closest
-           remaining candidate.
-        3. Repeat until top_k items are selected.
-
-        Parameters
-        ----------
-        candidates       : list of item_id strings
-        relevance_scores : dict {item_id: float}
-        top_k            : int
-
-        Returns
-        -------
-        list of item_id strings in geo-greedy order
+           remaining candidate — provided it is at least `min_distance_km`
+           away from EVERY already-selected item.
+        3. Candidates that violate the minimum distance are skipped entirely.
+        4. Repeat until top_k items are selected or candidates are exhausted.
         """
         selected = []
         remaining = set(candidates)
 
-        # Step 1: anchor on highest relevance score
+        # Step 1: anchor on highest relevance score (no distance check needed)
         anchor = max(remaining, key=lambda i: relevance_scores[i])
         selected.append(anchor)
         remaining.discard(anchor)
@@ -94,7 +90,20 @@ class GeoReranker:
         # Step 2+: greedy nearest neighbour from last selected
         while remaining and len(selected) < top_k:
             last = selected[-1]
-            nearest = min(remaining, key=lambda i: self._distance(last, i))
+
+            # Filter out candidates too close to ANY selected item
+            eligible = [
+                i for i in remaining
+                if all(
+                    self._distance(i, s) >= self.min_distance_km
+                    for s in selected
+                )
+            ]
+
+            if not eligible:
+                break  # All remaining candidates are near-duplicates; stop early
+
+            nearest = min(eligible, key=lambda i: self._distance(last, i))
             selected.append(nearest)
             remaining.discard(nearest)
 
@@ -181,7 +190,7 @@ def main(available_datasets):
 
         # Build reranker once per dataset, reuse across all models
         coords_df = load_coordinates(dataset)
-        reranker = GeoReranker(coords_df)
+        reranker = GeoReranker(coords_df, 0.005)
 
         for result in tqdm(
             data, desc=f"Processing models for {dataset}", leave=False
