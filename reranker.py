@@ -1,6 +1,7 @@
 import pandas as pd
 import json
 import numpy as np
+from math import radians, sin, cos, sqrt, atan2
 from globals import (
     BASE_DIR,
     available_datasets,
@@ -641,6 +642,21 @@ def cp_gridsearch(
     save_cp_metadata(recommendation_folder, results, "gridsearch_results")
 
     return gridsearch_best_deltas
+
+
+def haversine(lat1, lon1, lat2, lon2):
+    """
+    Returns the great-circle distance in km between two points
+    given their latitude and longitude in decimal degrees.
+    """
+    R = 6371.0  # Earth radius in km
+
+    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+
+    a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+    return R * 2 * atan2(sqrt(a), sqrt(1 - a))
 
 
 def main(available_datasets):
