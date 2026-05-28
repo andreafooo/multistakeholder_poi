@@ -82,7 +82,6 @@ class MMRReranker:
         ----------
         recommendations_df : pd.DataFrame
             Columns: user_id:token, item_id:token, score
-            Scores should already be min-max normalised per user
             (create_base_recommendations in reranker.py handles this).
         top_k : int
 
