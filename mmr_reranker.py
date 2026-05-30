@@ -236,29 +236,30 @@ def main(available_datasets):
         for result in tqdm(
             data, desc=f"Processing models for {dataset}", leave=False
         ):
-            try:
-                print(
-                    f"Processing model {result['model']} on dataset {result['dataset']}"
-                )
+            if result["model"] == "LightGCN":
+                try:
+                    print(
+                        f"Processing model {result['model']} on dataset {result['dataset']}"
+                    )
 
-                baseline_topk_dir, basedir = recommender_dir_combiner(
-                    dataset, result["directory"]
-                )
+                    baseline_topk_dir, basedir = recommender_dir_combiner(
+                        dataset, result["directory"]
+                    )
 
-                base_resample, _ = create_base_recommendations(
-                    baseline_topk_dir,
-                    top_k_resample=top_k_resample,
-                    top_k_eval=top_k_eval,
-                )
+                    base_resample, _ = create_base_recommendations(
+                        baseline_topk_dir,
+                        top_k_resample=top_k_resample,
+                        top_k_eval=top_k_eval,
+                    )
 
-                out_df = reranker.rerank_all(
-                    recommendations_df=base_resample,
-                    top_k=top_k_resample,
-                )
-                save_top_k(out_df, basedir, "mmr")
+                    out_df = reranker.rerank_all(
+                        recommendations_df=base_resample,
+                        top_k=top_k_resample,
+                    )
+                    save_top_k(out_df, basedir, "mmr")
 
-            except Exception as e:
-                traceback.print_exception(type(e), e, e.__traceback__)
+                except Exception as e:
+                    traceback.print_exception(type(e), e, e.__traceback__)
 
 
 if __name__ == "__main__":

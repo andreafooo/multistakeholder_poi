@@ -663,146 +663,147 @@ def main(available_datasets):
     for dataset in tqdm(available_datasets, desc="Processing datasets"):
         data = dataset_metadata(dataset)
         for result in tqdm(data, desc=f"Processing models for {dataset}", leave=False):
-            try:
-                print(
-                    f"Processing model {result['model']} on dataset {result['dataset']}"
-                )
+            if result["model"] == "LightGCN":
+                try:
+                    print(
+                        f"Processing model {result['model']} on dataset {result['dataset']}"
+                    )
 
-                # Combine the baseline directory and check if the cp directory exists
-                baseline_topk_dir, basedir = recommender_dir_combiner(
-                    dataset, result["directory"]
-                )
+                    # Combine the baseline directory and check if the cp directory exists
+                    baseline_topk_dir, basedir = recommender_dir_combiner(
+                        dataset, result["directory"]
+                    )
 
-                train_data, test_data, user_groups = open_ground_truth_user_group(
-                    dataset
-                )
-                base_resample, base_eval = create_base_recommendations(
-                    baseline_topk_dir,
-                    top_k_resample=top_k_resample,
-                    top_k_eval=top_k_eval,
-                )
+                    train_data, test_data, user_groups = open_ground_truth_user_group(
+                        dataset
+                    )
+                    base_resample, base_eval = create_base_recommendations(
+                        baseline_topk_dir,
+                        top_k_resample=top_k_resample,
+                        top_k_eval=top_k_eval,
+                    )
 
-                upd_eval, item_popularity, upts = rerank_upd(
-                    dataset,
-                    base_resample,
-                    top_k_eval,
-                    valid_popularity,
-                    dir_to_save=basedir,
-                    train_data=train_data,
-                    calibrate_on="mean",
-                )
-
-                if save_upd:
-                    save_top_k(upd_eval, basedir, "upd")
-
-                ##### Using a smaller subsample for testing deltas in cp
-                # user_groups = sample_user_groups(
-                #     user_groups, sample_size=50
-                # )  # for testing
-                # sampled_user_ids = set(
-                #     id_ for group in user_groups.values() for id_ in group
-                # )  # for testing
-                # dataframes_to_filter = [
-                #     train_data,
-                #     test_data,
-                #     base_resample,
-                #     base_eval,
-                #     upts,
-                # ]  # for testing
-                # filtered_dataframes = [
-                #     df.loc[df["user_id:token"].isin(sampled_user_ids)]
-                #     for df in dataframes_to_filter
-                # ]  # for testing
-                # train_data, test_data, base_resample, base_eval, upts = (
-                #     filtered_dataframes  # for testing
-                # )
-                #### End of using a smaller subsample for testing deltas in cp
-
-                all_user_ids = (
-                    set(user_groups["high"])
-                    | set(user_groups["medium"])
-                    | set(user_groups["low"])
-                )
-                user_groups["all"] = list(all_user_ids)
-
-                base_resample = base_resample.merge(item_popularity, on="item_id:token")
-                test_data = test_data.merge(
-                    item_popularity, on="item_id:token", how="left"
-                )
-                train_data = train_data.merge(
-                    item_popularity, on="item_id:token", how="left"
-                )
-                user_profiles = calculate_user_popularity_distributions(
-                    train_data, item_popularity
-                )
-
-                if gridsearch:
-                    cp_gridsearch_best_deltas = cp_gridsearch(
+                    upd_eval, item_popularity, upts = rerank_upd(
+                        dataset,
                         base_resample,
-                        user_profiles,
                         top_k_eval,
-                        item_popularity,
-                        train_data,
-                        test_data,
-                        user_groups,
-                        upts,
-                        basedir,
-                    )
-                else:
-                    cp_gridsearch_best_deltas = json.load(
-                        open(f"{basedir}/cp/gridsearch_best_deltas.json")
+                        valid_popularity,
+                        dir_to_save=basedir,
+                        train_data=train_data,
+                        calibrate_on="mean",
                     )
 
-                print(f"Best deltas: {cp_gridsearch_best_deltas}")
+                    if save_upd:
+                        save_top_k(upd_eval, basedir, "upd")
 
-                cp_dfs = []
-                for group in tqdm(user_groups.keys(), desc="Processing CP groups", leave=False):
-                    if group != "all":
-                        base_resample_group = base_resample.loc[
-                            base_resample["user_id:token"].isin(user_groups[group])
-                        ]
-                        user_profiles_group = user_profiles.loc[
-                            user_profiles["user_id:token"].isin(user_groups[group])
-                        ]
-                        reranked_df_group = rerank_cp_all_users(
-                            base_resample_group,
-                            user_profiles_group,
+                    ##### Using a smaller subsample for testing deltas in cp
+                    # user_groups = sample_user_groups(
+                    #     user_groups, sample_size=50
+                    # )  # for testing
+                    # sampled_user_ids = set(
+                    #     id_ for group in user_groups.values() for id_ in group
+                    # )  # for testing
+                    # dataframes_to_filter = [
+                    #     train_data,
+                    #     test_data,
+                    #     base_resample,
+                    #     base_eval,
+                    #     upts,
+                    # ]  # for testing
+                    # filtered_dataframes = [
+                    #     df.loc[df["user_id:token"].isin(sampled_user_ids)]
+                    #     for df in dataframes_to_filter
+                    # ]  # for testing
+                    # train_data, test_data, base_resample, base_eval, upts = (
+                    #     filtered_dataframes  # for testing
+                    # )
+                    #### End of using a smaller subsample for testing deltas in cp
+
+                    all_user_ids = (
+                        set(user_groups["high"])
+                        | set(user_groups["medium"])
+                        | set(user_groups["low"])
+                    )
+                    user_groups["all"] = list(all_user_ids)
+
+                    base_resample = base_resample.merge(item_popularity, on="item_id:token")
+                    test_data = test_data.merge(
+                        item_popularity, on="item_id:token", how="left"
+                    )
+                    train_data = train_data.merge(
+                        item_popularity, on="item_id:token", how="left"
+                    )
+                    user_profiles = calculate_user_popularity_distributions(
+                        train_data, item_popularity
+                    )
+
+                    if gridsearch:
+                        cp_gridsearch_best_deltas = cp_gridsearch(
+                            base_resample,
+                            user_profiles,
                             top_k_eval,
-                            delta=cp_gridsearch_best_deltas["harmonic_mean"][group],
+                            item_popularity,
+                            train_data,
+                            test_data,
+                            user_groups,
+                            upts,
+                            basedir,
                         )
-                        cp_dfs.append(reranked_df_group)
-
-                reranked_df = pd.concat(cp_dfs)
-                save_top_k(reranked_df, basedir, "cp")
-
-                cp_min_dfs = []
-                for group in tqdm(user_groups.keys(), desc="Processing CP min JS groups", leave=False):
-                    if group != "all":
-                        base_resample_group = base_resample.loc[
-                            base_resample["user_id:token"].isin(user_groups[group])
-                        ]
-                        user_profiles_group = user_profiles.loc[
-                            user_profiles["user_id:token"].isin(user_groups[group])
-                        ]
-                        reranked_df_group = rerank_cp_all_users(
-                            base_resample_group,
-                            user_profiles_group,
-                            top_k_eval,
-                            delta=cp_gridsearch_best_deltas["js"][group],
+                    else:
+                        cp_gridsearch_best_deltas = json.load(
+                            open(f"{basedir}/cp/gridsearch_best_deltas.json")
                         )
-                        cp_min_dfs.append(reranked_df_group)
 
-                reranked_df = pd.concat(cp_min_dfs)
-                save_top_k(reranked_df, basedir, "cp_min_js")
+                    print(f"Best deltas: {cp_gridsearch_best_deltas}")
+
+                    # cp_dfs = []
+                    # for group in tqdm(user_groups.keys(), desc="Processing CP groups", leave=False):
+                    #     if group != "all":
+                    #         base_resample_group = base_resample.loc[
+                    #             base_resample["user_id:token"].isin(user_groups[group])
+                    #         ]
+                    #         user_profiles_group = user_profiles.loc[
+                    #             user_profiles["user_id:token"].isin(user_groups[group])
+                    #         ]
+                    #         reranked_df_group = rerank_cp_all_users(
+                    #             base_resample_group,
+                    #             user_profiles_group,
+                    #             top_k_eval,
+                    #             delta=cp_gridsearch_best_deltas["harmonic_mean"][group],
+                    #         )
+                    #         cp_dfs.append(reranked_df_group)
+
+                    # reranked_df = pd.concat(cp_dfs)
+                    # save_top_k(reranked_df, basedir, "cp")
+
+                    cp_min_dfs = []
+                    for group in tqdm(user_groups.keys(), desc="Processing CP min JS groups", leave=False):
+                        if group != "all":
+                            base_resample_group = base_resample.loc[
+                                base_resample["user_id:token"].isin(user_groups[group])
+                            ]
+                            user_profiles_group = user_profiles.loc[
+                                user_profiles["user_id:token"].isin(user_groups[group])
+                            ]
+                            reranked_df_group = rerank_cp_all_users(
+                                base_resample_group,
+                                user_profiles_group,
+                                top_k_eval,
+                                delta=cp_gridsearch_best_deltas["js"][group],
+                            )
+                            cp_min_dfs.append(reranked_df_group)
+
+                    reranked_df = pd.concat(cp_min_dfs)
+                    save_top_k(reranked_df, basedir, "cp_min_js")
 
             # except KeyError:
             #     print(
             #         f"Error: In Model {result['model']} on dataset {result['dataset']}"
             #     )
 
-            except Exception as e:
-                traceback.print_exception(type(e), e, e.__traceback__)
-                # continue
+                except Exception as e:
+                    traceback.print_exception(type(e), e, e.__traceback__)
+                    # continue
 
 
 if __name__ == "__main__":

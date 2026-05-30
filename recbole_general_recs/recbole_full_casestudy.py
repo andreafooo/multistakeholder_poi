@@ -8,6 +8,7 @@ import pathlib
 import yaml
 import glob
 
+
 import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -60,7 +61,7 @@ def run_configurations(config):
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
 
-    df = pd.read_csv(os.path.join(
+    df = pd.read_csv(os.path.join(PROJECT_BASE,
         "recbole_general_recs", "dataset", config_dict['dataset'], f"{config_dict['dataset']}.test.inter"),
         sep="\t",
     )
