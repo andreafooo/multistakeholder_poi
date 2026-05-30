@@ -1,41 +1,9 @@
-# Exploring the Effect of Context-Awareness and Popularity Calibration on Popularity Bias in POI Recommendations
+# Multistakeholder Alignment in POI Recommendation
 
-## Link to Paper: 
-https://dl.acm.org/doi/10.1145/3705328.3748017
+
 ## Abstract
 
-Point-of-interest (POI) recommender systems help users discover relevant locations, but their effectiveness is often compromised by popularity bias, which disadvantages less popular yet potentially meaningful places. This paper addresses the challenge by evaluating the effectiveness of context-aware models and calibrated popularity techniques as strategies for mitigating popularity bias. Using four real-world POI datasets (Brightkite, Foursquare, Gowalla, Yelp), we analyze the individual and combined effects of these approaches on recommendation accuracy and popularity bias.
-Our results reveal that context-aware models cannot be considered a uniform solution, as the models studied exhibit divergent impacts on accuracy and bias. In contrast, calibration techniques can effectively align recommendation popularity with user preferences, provided there is a careful balance between accuracy and bias mitigation. Notably, the combination of calibration and context-awareness yields recommendations that balance accuracy and close alignment with the users' popularity profiles, i.e., popularity calibration.
-
-
 ## Results
-
-| Descriptive Statistics|
-| --- |
-| ![Evaluation](docs/images/dataset_stats.png)
-
-
-
-
-| Evaluation RQ1|
-| --- |
-| ![Evaluation](docs/images/eval_rq1.png)
-
-| Evaluation RQ2|
-| --- |
-| ![Evaluation](docs/images/eval_rq2.png)
-
-
-
-### RQ1 & RQ2. Comparing the item group ratios (T, M, H) in the user group's user profiles to the algorithms BPR $Base$ and LORE $Base$, and combined with the respective $CP_H$ and $CP_\Im$ ratios in the Yelp dataset (see Github for all distributions)
-
-| Brightkite | Foursquare Tokyo |
-| --- | --- |
-| ![Brightkite](docs/images/popularity_distribution_brightkite.png) | ![Foursquare Tokyo](docs/images/popularity_distribution_foursquaretky.png) |
-
-| Gowalla | Yelp |
-| --- | --- |
-| ![Gowalla](docs/images/popularity_distribution_gowalla.png) | ![Yelp](docs/images/popularity_distribution_yelp.png) |
 
 
 ## Manual to Reproduce Results
@@ -65,8 +33,8 @@ Note: The dataset samples are provided for all four dataset, hence you can skip 
 
 Links to the original datasets used in this study: 
 * [yelp_dataset](https://www.yelp.com/dataset)
-* [gowalla_dataset](https://snap.stanford.edu/data/loc-gowalla.html)
-* [brightkite_dataset](https://snap.stanford.edu/data/loc-brightkite.html)
+<!-- * [gowalla_dataset](https://snap.stanford.edu/data/loc-gowalla.html)
+* [brightkite_dataset](https://snap.stanford.edu/data/loc-brightkite.html) -->
 * [foursquaretky_dataset](https://www.kaggle.com/datasets/chetanism/foursquare-nyc-and-tokyo-checkin-dataset)
 
 5. Data Sampling & Preprocessing: Add the desired datasets to ```globals.py``` and call ```data_sampling.py```from the root directory. The samples include three user groups; 1/3 that visited the most popular POIs, 1/3 around the popularity median and 1/3 that visited the least popular POIs (default n=1500 users). The train/validation/test (65/15/20) splits are performed based on a user-based temporal split & duplicate check-ins are transformed into a check-in count. The samples are processed to fit the layout for RecBole and CAPRI and saved into the respective subfolders in the ```BASE_DIR```. 
