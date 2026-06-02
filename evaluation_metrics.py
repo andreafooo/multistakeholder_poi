@@ -188,15 +188,15 @@ def geographic_ild_per_user(df, item_coords, warn_threshold_m=1.0):
                 item_a, (lat1, lon1) = coords[a]
                 item_b, (lat2, lon2) = coords[b]
                 dist_km = haversine(lat1, lon1, lat2, lon2)
-                dist_m  = dist_km * 1000
+                # dist_m  = dist_km * 1000
 
-                if dist_m < warn_threshold_m:
-                    print(
-                        f"[GEO-ILD WARNING] user={user_id} | "
-                        f"items=({item_a}, {item_b}) | "
-                        f"dist={dist_m:.4f}m | "
-                        f"coords=({lat1},{lon1}) vs ({lat2},{lon2})"
-                    )
+                # if dist_m < warn_threshold_m:
+                    # print(
+                    #     f"[GEO-ILD WARNING] user={user_id} | "
+                    #     f"items=({item_a}, {item_b}) | "
+                    #     f"dist={dist_m:.4f}m | "
+                    #     f"coords=({lat1},{lon1}) vs ({lat2},{lon2})"
+                    # )
 
                 distances.append(dist_km)
 
