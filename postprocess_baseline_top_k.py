@@ -9,7 +9,7 @@ context_models = ["LORE", "USG"]
 ############################################################################################################
 
 
-def process_top_k_json(input_file, output_file, k=top_k_eval):
+def process_top_k_json(input_file, output_file, k=top_k_resample):
     """
     Process top-k recommendations from a JSON file, keeping only the item IDs for each user.
 
