@@ -5,14 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "poi-rs-popbias_mitigation"
 version = "1.0.0"
-description = "POI Recommendation with Popularity Bias Mitigation using RecBole and CAPRI"
+description = "Multistakeholder Alignment in POI Recommendations"
 readme = "README.md"
 requires-python = ">=3.9,<3.12"
 license = {text = "MIT"}
 authors = [
-    {name = "Andrea Forster", email = "aforster@know-center.at"}
+    {name = "Anonymous", email = "anonymous"}
 ]
-keywords = ["recommendation systems", "POI", "popularity bias", "re-ranking", "RecBole", "CAPRI"]
+keywords = ["recommendation systems", "POI", "popularity bias", "re-ranking", "RecBole"]
 
 dependencies = [
     # Core RecBole
