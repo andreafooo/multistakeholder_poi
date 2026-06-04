@@ -18,9 +18,11 @@ top_k_resample = 150
 top_k_eval = 10
 valid_popularity = "item_pop"
 recommendation_dirpart = "recommendations"
+methods_to_aggregate = ["baseline", "cp_min_js", "geo", "mmr"]
 full_eval_methods = ["baseline", "cp_min_js", "mmr", "geo", "borda", "schulze"]
 boosting_methods = ["borda2baseline", "borda2cp_min_js", "borda2geo", "borda2mmr", 
                     "schulze2baseline", "schulze2cp_min_js", "schulze2geo", "schulze2mmr"]
+
 MMR_LAMBDA = 1  # 0 = pure relevance, 1 = pure diversity
-
-
+sc_models = models_for_recbole
+boosting = True
