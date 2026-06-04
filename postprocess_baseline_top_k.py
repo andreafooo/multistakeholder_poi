@@ -1,11 +1,10 @@
 import os
 import json
 from pathlib import Path
-from globals import BASE_DIR, available_datasets, top_k_eval, top_k_resample, recommendation_dirpart
+from globals import BASE_DIR, available_datasets, top_k_eval, top_k_resample, recommendation_dirpart, models_for_recbole, full_eval_methods
 
 # Constants
-general_models = ["BPR"]
-context_models = ["LORE", "USG"]
+general_models = models_for_recbole
 ############################################################################################################
 
 
@@ -84,7 +83,7 @@ def dataset_metadata(dataset, recommendation_dirpart):
 def create_model_directories(dataset, data, base_dir, recommendation_dirpart):
     """Create model directories for each method"""
     model_directories = {}
-    methods = ["baseline", "cp", "cp_min_js"]
+    methods = full_eval_methods
 
     for result in data:
         model_name = result["model"]
