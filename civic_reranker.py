@@ -5,7 +5,7 @@ import json
 import traceback
 from math import radians, sin, cos, sqrt, atan2
 from tqdm import tqdm
-from reranker import (
+from platform_reranker import (
     create_base_recommendations,
     dataset_metadata,
     recommender_dir_combiner,
@@ -14,7 +14,6 @@ from reranker import (
 from globals import (
     BASE_DIR,
     available_datasets,
-    recommendation_dirpart,
     top_k_eval,
     top_k_resample,
 )
@@ -23,14 +22,12 @@ from globals import (
 class GeoReranker:
     def __init__(self, coordinates_df, min_distance_km: float = 0.01):
         """
-        Parameters
-        ----------
         coordinates_df  : pd.DataFrame
             Must contain columns: item_id:token, lat:float, lon:float
         min_distance_km : float
             Minimum distance (km) a candidate must be from ALL already-selected
             items. Candidates closer than this threshold are skipped to avoid
-            near-duplicate recommendations. Default: 5 meters.
+            near-duplicate recommendations. Default: 10 meters.
         """
         self.min_distance_km = min_distance_km
         self.coords = dict(
@@ -40,7 +37,6 @@ class GeoReranker:
             )
         )
 
-    # --- haversine distance in km ---
     @staticmethod
     def _haversine(lat1, lon1, lat2, lon2):
         """
@@ -67,7 +63,6 @@ class GeoReranker:
             return float("inf")
         return self._haversine(coords_a[0], coords_a[1], coords_b[0], coords_b[1])
 
-    # --- core greedy nearest-neighbour traversal ---
     def _geo_select(self, candidates, relevance_scores, top_k):
         """
         Greedy geographic traversal with minimum-distance deduplication.
@@ -109,21 +104,9 @@ class GeoReranker:
 
         return selected
 
-    # --- OFFLINE: full recommendation frame ---
     def rerank_all(self, recommendations_df, top_k):
         """
         Re-rank a full recommendations DataFrame geographically.
-
-        Parameters
-        ----------
-        recommendations_df : pd.DataFrame
-            Columns: user_id:token, item_id:token, score
-        top_k : int
-
-        Returns
-        -------
-        pd.DataFrame  columns: user_id:token, item_id:token, rank, score
-                      sorted by user_id:token, rank
         """
         results = []
 
@@ -157,16 +140,6 @@ class GeoReranker:
     def rerank_user(self, user_candidates, relevance_scores, top_k):
         """
         Re-rank candidates for a single user on the fly.
-
-        Parameters
-        ----------
-        user_candidates  : list of item_id strings
-        relevance_scores : dict {item_id: float}
-        top_k            : int
-
-        Returns
-        -------
-        list of item_id strings in geo-greedy order
         """
         return self._geo_select(user_candidates, relevance_scores, top_k)
 
@@ -187,38 +160,35 @@ def load_coordinates(dataset):
 def main(available_datasets):
     for dataset in tqdm(available_datasets, desc="Processing datasets"):
         data = dataset_metadata(dataset)
-
-        # Build reranker once per dataset, reuse across all models
         coords_df = load_coordinates(dataset)
         reranker = GeoReranker(coords_df, 0.01)
 
         for result in tqdm(
             data, desc=f"Processing models for {dataset}", leave=False
         ):
-            if result["model"] == "LightGCN":
-                try:
-                    print(
-                        f"Processing model {result['model']} on dataset {result['dataset']}"
-                    )
+            try:
+                print(
+                    f"Processing model {result['model']} on dataset {result['dataset']}"
+                )
 
-                    baseline_topk_dir, basedir = recommender_dir_combiner(
-                        dataset, result["directory"]
-                    )
+                baseline_topk_dir, basedir = recommender_dir_combiner(
+                    dataset, result["directory"]
+                )
 
-                    base_resample, base_eval = create_base_recommendations(
-                        baseline_topk_dir,
-                        top_k_resample=top_k_resample,
-                        top_k_eval=top_k_eval,
-                    )
+                base_resample, base_eval = create_base_recommendations(
+                    baseline_topk_dir,
+                    top_k_resample=top_k_resample,
+                    top_k_eval=top_k_eval,
+                )
 
-                    out_df = reranker.rerank_all(
-                        recommendations_df=base_resample,
-                        top_k=top_k_resample,
-                    )
-                    save_top_k(out_df, basedir, "geo")
+                out_df = reranker.rerank_all(
+                    recommendations_df=base_resample,
+                    top_k=top_k_resample,
+                )
+                save_top_k(out_df, basedir, "geo")
 
-                except Exception as e:
-                    traceback.print_exception(type(e), e, e.__traceback__)
+            except Exception as e:
+                traceback.print_exception(type(e), e, e.__traceback__)
 
 
 if __name__ == "__main__":
