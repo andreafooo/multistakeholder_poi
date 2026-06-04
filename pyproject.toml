@@ -12,7 +12,7 @@ license = {text = "MIT"}
 authors = [
     {name = "Anonymous", email = "anonymous"}
 ]
-keywords = ["recommendation systems", "POI", "popularity bias", "re-ranking", "RecBole"]
+keywords = ["recommendation systems", "POI", "re-ranking", "RecBole"]
 
 dependencies = [
     # Core RecBole
@@ -126,7 +126,7 @@ dev = [
 ]
 
 [project.urls]
-Repository = "https://github.com/andreafooo/POI_RS_PopBias_Mitigation"
+Repository = "anonymous"
 
 [tool.setuptools]
 py-modules = []
