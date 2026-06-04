@@ -9,8 +9,8 @@ The outputs of these agents are combined using voting methods from computational
 
 ##  Percentage Change of the individual stakeholder agents and the social choice methods compared to the user-centered baseline
 <p float="left">
-  <img src="./docs/images/foursquaretky_metrics_percantage_change.png" width="48%" />
-  <img src="./docs/images/yelp_metrics_percantage_change.png" width="48%" />
+  <img src="./docs/images/foursquaretky_metrics_percentage_change.png" width="48%" />
+  <img src="./docs/images/yelp_metrics_percentage_change.png" width="48%" />
 </p>
 
 
@@ -36,10 +36,8 @@ Python < 3.12 (e.g., 3.11.8)
 python3.11 -m venv venv
 source venv/bin/activate
 ```
-2. Install the requirements 
-```
-pip3 install -r requirements.txt
-```
+2. Install the requirements from `pyproject.toml`
+
 3. Create/update the script ```globals.py``` in the root directory and add the line ```BASE_DIR = /path/to/your/base/directory/```. This base directory will be used to store the datasets and the recommender outputs. 
 
 Note: The dataset samples are provided for both dataset, hence you can skip steps 4-5. \
@@ -53,7 +51,7 @@ Links to the original datasets used in this study:
 5. Data Sampling & Preprocessing: Add the desired datasets to ```globals.py``` and call ```data_sampling.py```from the root directory. The samples include three user groups; 1/3 that visited the most popular POIs, 1/3 around the popularity median and 1/3 that visited the least popular POIs (default n=1500 users). The train/validation/test (65/15/20) splits are performed based on a user-based temporal split & duplicate check-ins are transformed into a check-in count. The samples are processed to fit the layout for RecBole and CAPRI and saved into the respective subfolders in the ```BASE_DIR```. 
 
 ### Generate Recommendations (User Agent, Baseline)
-Generate Recommendations using [RecBole](https://github.com/RUCAIBox/RecBole) for general recommender models. RecBole works as a pip package inside this project.
+Generate Recommendations using [RecBole](https://github.com/RUCAIBox/RecBole) for general recommender models. RecBole works as a pip package inside this project. NOTE: main study uses numpy==2.3.5; if you need to run your own RecBole recommendations, an older numpy version (e.g., 1.26.4) is needed.
 
 1. Inside the folder ```recbole_general_recs/dataset``` create a folder with the structure ```<dataset name>_sample``` (e.g., foursquaretky_sample) & copy the files from your ```BASE_DIR/foursquaretky_dataset/processed_data_recbole``` into that folder. 
 
@@ -77,9 +75,9 @@ In the hyperopt package, in hyperopt/pyll/stochastic.py", line 100, in randint
 Next, we are re-ranking the baseline recommendations for each stakeholder objective.
 
 
-* Platform agent: call ```platform_reranker.py```from the root directory (find top-k Recommendations under: "<datasets>/<recommendations>/<baseline output>/cp/")
-* Provider Agent: call ```provider_reranker.py```from the root directory (find top-k Recommendations under: "<datasets>/<recommendations>/<baseline output>/mmr/")
-* Civic Agent: call ```civic_reranker.py```from the root directory (find top-k Recommendations under: "<datasets>/<recommendations>/<baseline output>/geo/")
+* Platform agent: call ```platform_reranker.py```from the root directory (find top-k Recommendations under: "datasets/recommendations/"model output"/cp/")
+* Provider Agent: call ```provider_reranker.py```from the root directory (find top-k Recommendations under: "datasets/recommendations/"model output"/mmr/")
+* Civic Agent: call ```civic_reranker.py```from the root directory (find top-k Recommendations under: "datasets/recommendations/"model output"/geo/")
 
 ### Social Choice Aggregation
 * Run: social_choice_aggregation.py (find top-k Recommendations under: "datasets/recommendations/"baseline output"/borda/" or ".../schulze/)
