@@ -2,15 +2,17 @@
 
 
 ## Abstract
-
+Point-of-interest (POI) recommender systems assist users in discovering relevant locations. While optimizing recommendations for users is crucial, it can compromise the interests of other stakeholders such as business owners, platforms like Foursquare and Yelp, or local governments. Existing research typically focuses on optimizing algorithms to the needs of a single stakeholder only. 
+We address this limitation using a multistakeholder approach that decouples the base recommendation from stakeholder-specific interventions. Starting with user-centric baseline recommendations, we model the stakeholder objectives as independent agents, each applying a distinct re-ranking strategy: (i) the platform agent uses calibrated popularity to align with historical popularity distributions, (ii) the provider agent applies maximal marginal relevance to improve recommendation diversity across local businesses and POIs, and (iii) the civic agent utilizes geographic proximity-based re-ranking to reduce travel distances and the mobility burden of tourism. 
+The outputs of these agents are combined using voting methods from computational social choice. We evaluate our approach on datasets from Foursquare and Yelp, and our results demonstrate that recommendations generated via a single stakeholder agent indeed harm other stakeholder objectives. In contrast, our multistakeholder approach achieves a more balanced trade-off across various stakeholder objectives. We also explore the effect of different voting methods on stakeholder representation while maintaining extensibility for other multistakeholder scenarios.
 ## Results
-
+![alt text](./docs/images/results.png "Results")
 
 ## Manual to Reproduce Results
 
-The manual below includes all necessary steps (data sample generation, preprocessing, saving data files for plug-in into recommendation frameworks, re-ranking for popularity bias mitigation, accuracy-based evaluation, and user-centered evaluation) to generate baseline and re-ranked POI recommendations and evaluate their performance. To facilitate the reproducibility of the recommendations, we use the recommender frameworks [RecBole](https://github.com/RUCAIBox/RecBole) for general recommender models and [CAPRI](https://github.com/CapriRecSys/CAPRI) for Context-Aware Point-of-Interest Recommendation. 
+The manual below includes all necessary steps (data sample generation, preprocessing, saving data files for plug-in into recommendation frameworks, re-ranking for stakeholder objectives, accuracy and beyond-accuracy evaluation) to generate baseline and re-ranked POI recommendations and evaluate their performance. To facilitate the reproducibility of the recommendations, we use the recommender frameworks [RecBole](https://github.com/RUCAIBox/RecBole) for baseline generation.  
 
-#### Note: If you don't want to follow the entire pipeline, you can take a shortcut to the "General Evaluation" to perform this based on the results from the foursquaretky dataset.
+#### Note: If you don't want to follow the entire pipeline, you can take a shortcut to the "General Evaluation" to perform this based on the results from the foursquaretky (and yelp) datasets.
 
 ### Preprocessing
 
@@ -27,22 +29,18 @@ pip3 install -r requirements.txt
 ```
 3. Create/update the script ```globals.py``` in the root directory and add the line ```BASE_DIR = /path/to/your/base/directory/```. This base directory will be used to store the datasets and the recommender outputs. 
 
-Note: The dataset samples are provided for all four dataset, hence you can skip steps 4-5. \
+Note: The dataset samples are provided for both dataset, hence you can skip steps 4-5. \
 
 4. In the ```BASE_DIR``` proceed by creating dataset folders with the following structure ```<dataset_name>_dataset``` and then place the original, (unzipped) data files in this folder.
 
 Links to the original datasets used in this study: 
 * [yelp_dataset](https://www.yelp.com/dataset)
-<!-- * [gowalla_dataset](https://snap.stanford.edu/data/loc-gowalla.html)
-* [brightkite_dataset](https://snap.stanford.edu/data/loc-brightkite.html) -->
 * [foursquaretky_dataset](https://www.kaggle.com/datasets/chetanism/foursquare-nyc-and-tokyo-checkin-dataset)
 
 5. Data Sampling & Preprocessing: Add the desired datasets to ```globals.py``` and call ```data_sampling.py```from the root directory. The samples include three user groups; 1/3 that visited the most popular POIs, 1/3 around the popularity median and 1/3 that visited the least popular POIs (default n=1500 users). The train/validation/test (65/15/20) splits are performed based on a user-based temporal split & duplicate check-ins are transformed into a check-in count. The samples are processed to fit the layout for RecBole and CAPRI and saved into the respective subfolders in the ```BASE_DIR```. 
 
-### Generate Recommendations
-Generate Recommendations using [RecBole](https://github.com/RUCAIBox/RecBole) for general recommender models and [CAPRI](https://github.com/CapriRecSys/CAPRI) for Context-Aware Point-of-Interest Recommendation. RecBole works as a pip package inside this project, CAPRI is a separate repository. 
-
-#### Recbole 
+### Generate Recommendations (User Agent, Baseline)
+Generate Recommendations using [RecBole](https://github.com/RUCAIBox/RecBole) for general recommender models. RecBole works as a pip package inside this project.
 
 1. Inside the folder ```recbole_general_recs/dataset``` create a folder with the structure ```<dataset name>_sample``` (e.g., foursquaretky_sample) & copy the files from your ```BASE_DIR/foursquaretky_dataset/processed_data_recbole``` into that folder. 
 
@@ -60,31 +58,22 @@ In the recbole package in your virtual environment, comment out the line #from k
 In the hyperopt package, in hyperopt/pyll/stochastic.py", line 100, in randint
     return rng.integers(low, high, size) --> exchange rng.integers for rng.randint
 
+5. call ```postprocess_baseline_top_k.py```from the root directory. 
 
-#### CAPRI
-To use [CAPRI](https://github.com/CapriRecSys/CAPRI), clone the repository and create a virtual environment. Make sure to use Python 3.9x. 
+### Re-Ranking Agents
+Next, we are re-ranking the baseline recommendations for each stakeholder objective.
 
-In the current repository, in the folder ```capri_context_recs``` you can find some files that need to be exchanged in the repository in order to fit our use case: 
 
-1. switch out the ```requirements.txt```in CAPRI with the one in ```capri_context_recs/requirements.txt`` and install the packages inside your venv. 
+* Platform agent: call ```platform_reranker.py```from the root directory (find top-k Recommendations under: "<datasets>/<recommendations>/<baseline output>/cp/")
+* Provider Agent: call ```provider_reranker.py```from the root directory (find top-k Recommendations under: "<datasets>/<recommendations>/<baseline output>/mmr/")
+* Civic Agent: call ```civic_reranker.py```from the root directory (find top-k Recommendations under: "<datasets>/<recommendations>/<baseline output>/geo/")
 
-2. switch out ```<CAPRI ROOT DIR>/config.py``` (because we added new data samples and must name them)
-3. switch out ```<CAPRI ROOT DIR>/Data/readDataSizes.py``` (because we added new data samples and must name them)
-4. switch out ```<CAPRI ROOT DIR>/Evaluations/evaluator.py``` (get Recommendations including scores since they are needed for the re-ranking)
-
-5. Add our preprocessed sample datasets to CAPRI (e.g., ```BASE_DIR/foursquaretky_dataset/processed_data_capri```) to ```<CAPRI ROOT DIR>/Datasets/<dataset>_sample``` and follow the same naming convention as in RecBole (e.g., foursquaretky_sample). If you do so, there is no need to adapt readDataSizes.py and config.py, otherwise the folder names must be adapted in these 2 scripts. 
-
-6. In the ```config.py```you can specify which contexts (Geographical, Social, Temporal, Interaction) each dataset features. For our study, social connections are not relevant, therefore we remove them from the data. Run the script ```main.py``` and choose the desired model and dataset. To reproduce the results, use "sum" fusion method. Create a folder with this exact structure in the ```BASE_DIR/datasets/<dataset>_dataset/recommendations``` subdirectory: ```<dataset>_sample-contextpoi-<model_name>-Jan-01-2024_09-00-00``` and manually place the respective Outputs/Eval_ and Outputs/Scores_ files for the respective model into this directory. Return to this repository, open the script ```capri_postprocessing.py```, specify the desired datasets and run the script to process the outputs (general evaluation and top-k recommendations) to be in line with those produced by RecBole.
-
-Note: In case of an error in CAPRI try: If you produce multiple recommendations with the same model and dataset, you may have to delete the files inside ```<CAPRI ROOT DIR>/<Models>/<model name>/savedModels```to avoid errors. If you receive an error regarding the dataSize, it may help to include an empty file named socialRelations.txt with the dataset files. Check out their docs [docs](https://capri.readthedocs.io/en/latest/index.html) for further information.
-
-### Popularity Calibration
-
-1. call ```postprocess_baseline_top_k.py```from the root directory. 
-2. call ```reranker.py```from the root directory. gridsearch = False since it is already included for foursquaretky for the best CP-parameters. If you wish to include additional datasets, set gridseatch = True to find the optimal lambda tradeoff parameters. This produces results for $CP_H$ and $CP_\Im$ inside ```BASE_DIR/datasets/<dataset>_dataset/recommendations/<model name>```
+### Social Choice Aggregation
+* Run: social_choice_aggregation.py (find top-k Recommendations under: "datasets/recommendations/"baseline output"/borda/" or ".../schulze/)
+Note: For the weighting experiments, where a single stakeholder is upweighted compared to the others to assess their difference, set boosted to True. 
 
 #### General Evaluation
 The script ```offline_evaluation.ipynb```includes the full evaluation and plots. The evaluation metrics are found in ```evaluation_metrics.py```. 
-The script ```descriptive_statistics.ipynb```gives you the stats for all available datasets and the script ```latex_table_creator.ipynb```helps to turn the results for RQ1 & 2 from the offline evaluation into latex tables. 
+The script ```descriptive_statistics.ipynb```gives you the stats for all available datasets and the script. 
 
 
