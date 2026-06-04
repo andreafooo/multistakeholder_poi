@@ -6,7 +6,20 @@ Point-of-interest (POI) recommender systems assist users in discovering relevant
 We address this limitation using a multistakeholder approach that decouples the base recommendation from stakeholder-specific interventions. Starting with user-centric baseline recommendations, we model the stakeholder objectives as independent agents, each applying a distinct re-ranking strategy: (i) the platform agent uses calibrated popularity to align with historical popularity distributions, (ii) the provider agent applies maximal marginal relevance to improve recommendation diversity across local businesses and POIs, and (iii) the civic agent utilizes geographic proximity-based re-ranking to reduce travel distances and the mobility burden of tourism. 
 The outputs of these agents are combined using voting methods from computational social choice. We evaluate our approach on datasets from Foursquare and Yelp, and our results demonstrate that recommendations generated via a single stakeholder agent indeed harm other stakeholder objectives. In contrast, our multistakeholder approach achieves a more balanced trade-off across various stakeholder objectives. We also explore the effect of different voting methods on stakeholder representation while maintaining extensibility for other multistakeholder scenarios.
 ## Results
-![alt text](./docs/images/results.png "Results")
+
+##  Percentage Change of the individual stakeholder agents and the social choice methods compared to the user-centered baseline
+<p float="left">
+  <img src="./docs/images/foursquaretky_metrics_percantage_change.png" width="48%" />
+  <img src="./docs/images/yelp_metrics_percantage_change.png" width="48%" />
+</p>
+
+
+
+## Full Results
+<p float="center">
+  <img src="./docs/images/results.png" width="48%" />
+</p>
+
 
 ## Manual to Reproduce Results
 
