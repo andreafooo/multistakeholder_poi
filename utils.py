@@ -92,7 +92,6 @@ def get_paths_for_sc_input(dataset=config.available_datasets[0], recommendation_
                 "model_dir": element['directory']  # Store the model directory path
             }
 
-    print(sc_recs)
     return sc_recs
 
 def get_sc_output_dir(dataset, model_dir, sc_method, recommendation_dirpart=config.recommendation_dirpart, base_dir=config.RECS_BASE_DIR):

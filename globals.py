@@ -23,3 +23,4 @@ boosting_methods = ["borda2baseline", "borda2cp_min_js", "borda2geo", "borda2mmr
                     "schulze2baseline", "schulze2cp_min_js", "schulze2geo", "schulze2mmr"]
 MMR_LAMBDA = 1  # 0 = pure relevance, 1 = pure diversity
 
+
