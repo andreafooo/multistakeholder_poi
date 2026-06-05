@@ -5,7 +5,16 @@ from datetime import datetime
 from votekit.ballot import Ballot
 from votekit.pref_profile import PreferenceProfile
 from votekit.elections import Schulze, Borda
-from globals import top_k_resample, top_k_eval, available_datasets, recommendation_dirpart, sc_models, methods_to_aggregate, boosting, BASE_DIR
+from globals import (
+    top_k_resample, 
+    top_k_eval, 
+    available_datasets, 
+    recommendation_dirpart, 
+    sc_models, 
+    methods_to_aggregate, 
+    boosting, 
+    BASE_DIR
+)
 
 
 def candidates_to_ballot(candidates_list):

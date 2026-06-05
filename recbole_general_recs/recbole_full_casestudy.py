@@ -4,7 +4,6 @@ from recbole.quick_start import load_data_and_model
 import pandas as pd
 import json
 import os
-import pathlib
 import yaml
 import glob
 

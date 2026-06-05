@@ -1,7 +1,5 @@
 import pandas as pd
-import numpy as np
 import os
-import json
 import traceback
 from math import radians, sin, cos, sqrt, atan2
 from tqdm import tqdm
