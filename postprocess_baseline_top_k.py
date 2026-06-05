@@ -1,7 +1,15 @@
 import os
 import json
 from pathlib import Path
-from globals import BASE_DIR, available_datasets, top_k_eval, top_k_resample, recommendation_dirpart, models_for_recbole, full_eval_methods
+from globals import (
+    BASE_DIR, 
+    available_datasets, 
+    top_k_eval, 
+    top_k_resample, 
+    recommendation_dirpart, 
+    models_for_recbole, 
+    full_eval_methods
+)
 
 # Constants
 general_models = models_for_recbole

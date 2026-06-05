@@ -38,27 +38,27 @@ source venv/bin/activate
 ```
 2. Install the requirements from `pyproject.toml`
 
-3. Create/update the script ```globals.py``` in the root directory and add the line ```BASE_DIR = /path/to/your/base/directory/```. This base directory will be used to store the datasets and the recommender outputs. 
+3. Create/update the script `globals.py` in the root directory and add the line `BASE_DIR = /path/to/your/base/directory/`. This base directory will be used to store the datasets and the recommender outputs. 
 
 Note: The dataset samples are provided for both dataset, hence you can skip steps 4-5. \
 
-4. In the ```BASE_DIR``` proceed by creating dataset folders with the following structure ```<dataset_name>_dataset``` and then place the original, (unzipped) data files in this folder.
+4. In the `BASE_DIR` proceed by creating dataset folders with the following structure `<dataset_name>_dataset` and then place the original, (unzipped) data files in this folder.
 
 Links to the original datasets used in this study: 
 * [yelp_dataset](https://www.yelp.com/dataset)
 * [foursquaretky_dataset](https://www.kaggle.com/datasets/chetanism/foursquare-nyc-and-tokyo-checkin-dataset)
 
-5. Data Sampling & Preprocessing: Add the desired datasets to ```globals.py``` and call ```data_sampling.py```from the root directory. The samples include three user groups; 1/3 that visited the most popular POIs, 1/3 around the popularity median and 1/3 that visited the least popular POIs (default n=1500 users). The train/validation/test (65/15/20) splits are performed based on a user-based temporal split & duplicate check-ins are transformed into a check-in count. The samples are processed to fit the layout for RecBole and CAPRI and saved into the respective subfolders in the ```BASE_DIR```. 
+5. Data Sampling & Preprocessing: Add the desired datasets to `globals.py` and call `data_sampling.py`from the root directory. The samples include three user groups; 1/3 that visited the most popular POIs, 1/3 around the popularity median and 1/3 that visited the least popular POIs (default n=1500 users). The train/validation/test (65/15/20) splits are performed based on a user-based temporal split & duplicate check-ins are transformed into a check-in count. The samples are processed to fit the layout for RecBole and CAPRI and saved into the respective subfolders in the `BASE_DIR`. 
 
-### Generate Recommendations (User Agent, Baseline)
+### Generate Recommendations (Baseline)
 Generate Recommendations using [RecBole](https://github.com/RUCAIBox/RecBole) for general recommender models. RecBole works as a pip package inside this project. NOTE: main study uses numpy==2.3.5; if you need to run your own RecBole recommendations, an older numpy version (e.g., 1.26.4) is needed.
 
-1. Inside the folder ```recbole_general_recs/dataset``` create a folder with the structure ```<dataset name>_sample``` (e.g., foursquaretky_sample) & copy the files from your ```BASE_DIR/foursquaretky_dataset/processed_data_recbole``` into that folder. 
+1. Inside the folder `recbole_general_recs/dataset` create a folder with the structure `<dataset name>_sample` (e.g., foursquaretky_sample) & copy the files from your `BASE_DIR/foursquaretky_dataset/processed_data_recbole` into that folder. 
 
-2. Hyperparameter optimization: has already been done and saved to recbole_general_recs/config - if you wish to re-do it, cd to recbole_general_recs and run ```python3 config_hyperparameter_creator.py``` -- see hyper.test for the tested parameters
+2. Hyperparameter optimization: has already been done and saved to recbole_general_recs/config - if you wish to re-do it, cd to recbole_general_recs and run `python3 config_hyperparameter_creator.py` -- see hyper.test for the tested parameters
 
-3. cd back to the project's root directory, run: ```python3 recbole_general_recs/recbole_full_casestudy.py```
-This creates a folder inside the ```BASE_DIR/<dataset>``` named "recommendations/BPR+timestamp including the config file that produced the recommendations, the general evaluation and the top_k_recommendations
+3. cd back to the project's root directory, run: `python3 recbole_general_recs/recbole_full_casestudy.py`
+This creates a folder inside the `BASE_DIR/<dataset>` named "recommendations/BPR+timestamp including the config file that produced the recommendations, the general evaluation and the top_k_recommendations
 
 4. Note: In case of an error in Recbole, try: \
 ```pip3 install hyperopt``` \
@@ -69,22 +69,21 @@ In the recbole package in your virtual environment, comment out the line #from k
 In the hyperopt package, in hyperopt/pyll/stochastic.py", line 100, in randint
     return rng.integers(low, high, size) --> exchange rng.integers for rng.randint
 
-5. call ```postprocess_baseline_top_k.py```from the root directory. 
+5. call `postprocess_baseline_top_k.py`from the root directory. 
 
 ### Re-Ranking Agents
 Next, we are re-ranking the baseline recommendations for each stakeholder objective.
 
 
-* Platform agent: call ```platform_reranker.py```from the root directory (find top-k Recommendations under: "datasets/recommendations/"model output"/cp/")
-* Provider Agent: call ```provider_reranker.py```from the root directory (find top-k Recommendations under: "datasets/recommendations/"model output"/mmr/")
-* Civic Agent: call ```civic_reranker.py```from the root directory (find top-k Recommendations under: "datasets/recommendations/"model output"/geo/")
+* Platform agent: call `platform_reranker.py`from the root directory (find top-k Recommendations under: "datasets/recommendations/"model output"/cp/")
+* Provider Agent: call `provider_reranker.py`from the root directory (find top-k Recommendations under: "datasets/recommendations/"model output"/mmr/")
+* Civic Agent: call `civic_reranker.py`from the root directory (find top-k Recommendations under: "datasets/recommendations/"model output"/geo/")
 
 ### Social Choice Aggregation
 * Run: social_choice_aggregation.py (find top-k Recommendations under: "datasets/recommendations/"baseline output"/borda/" or ".../schulze/)
 Note: For the weighting experiments, where a single stakeholder is upweighted compared to the others to assess their difference, set boosted to True. 
 
 #### General Evaluation
-The script ```offline_evaluation.ipynb```includes the full evaluation and plots. The evaluation metrics are found in ```evaluation_metrics.py```. 
-The script ```descriptive_statistics.ipynb```gives you the stats for all available datasets and the script. 
+The script `offline_evaluation.ipynb` includes the full evaluation and plots. The evaluation metrics are found in `evaluation_metrics.py`. 
 
 

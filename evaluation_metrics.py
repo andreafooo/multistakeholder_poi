@@ -1,5 +1,4 @@
 import numpy as np
-import math
 from math import radians, sin, cos, sqrt, atan2, log2
 from collections import Counter
 
