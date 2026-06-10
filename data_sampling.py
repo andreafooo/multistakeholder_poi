@@ -359,10 +359,10 @@ def user_id_token_adder(df, column_name_list=["user_id:token", "item_id:token"])
 
 def data_saver_recbole(df, framework, suffix, DATASET_DIR, dataset):
     """Save the data in the format required by RecBole"""
-    if not os.path.exists(DATASET_DIR + "processed_data_" + framework):
-        os.makedirs(DATASET_DIR + "processed_data_" + framework)
+    if not os.path.exists(os.path.join(DATASET_DIR, "processed_data_" + framework)):
+        os.makedirs(os.path.join(DATASET_DIR, "processed_data_" + framework))
 
-    df.to_csv(os.path.join(f"{DATASET_DIR}processed_data_{framework}, {dataset}_sample.{suffix}"),
+    df.to_csv(os.path.join(DATASET_DIR, f"processed_data_{framework}", f"{dataset}_sample.{suffix}"),
         sep="\t",
         index=False,
     )
@@ -370,8 +370,8 @@ def data_saver_recbole(df, framework, suffix, DATASET_DIR, dataset):
 
 def data_saver_capri(df, filename, DATASET_DIR):
     """Save the data in the format required by CAPRI"""
-    if not os.path.exists(DATASET_DIR + "processed_data_capri"):
-        os.makedirs(DATASET_DIR + "processed_data_capri")
+    if not os.path.exists(os.path.join(DATASET_DIR, "processed_data_capri")):
+        os.makedirs(os.path.join(DATASET_DIR, "processed_data_capri"))
 
     df.to_csv(os.path.join(
         DATASET_DIR, "processed_data_capri", filename + ".txt"),
