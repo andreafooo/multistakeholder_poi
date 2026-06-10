@@ -47,7 +47,7 @@ def convert_to_unix_timestamp(df, column_name):
 
 def dataset_specific_preprocessing(dataset, DATASET_DIR):
     if dataset == "foursquarenyc" or dataset == "foursquaretky":
-        checkin_df = pd.read_csv(DATASET_DIR + "foursquare_data.csv", sep=",")
+        checkin_df = pd.read_csv(os.path.join(DATASET_DIR, "foursquare_data.csv"), sep=",")
         checkin_df = checkin_df.drop(columns=["timezoneOffset"])
         checkin_df = checkin_df.rename(
             columns={
@@ -293,6 +293,7 @@ def id_factorizer(
     user_df_sample,
     poi_df_sample,
     checkin_df_timestamp,
+    dataset
 ):
     """Overwriting the actual ID with a factorized ID so that we can use the same ID both in RecBole and CAPRI"""
     checkin_df_sample["user_id:token"], user_id_map = pd.factorize(
@@ -329,6 +330,10 @@ def id_factorizer(
     poi_df_sample["item_id:token"] = poi_df_sample["item_id:token"].map(
         business_id_mapping
     )
+
+    
+    with open(os.path.join(BASE_DIR, f"{dataset}_dataset", "id_mappings.json"), "w") as f:
+        json.dump({"user": user_id_mapping, "business": business_id_mapping}, f)
 
     return (
         checkin_df_sample,
@@ -391,7 +396,7 @@ def user_id_cleaner(df, column_name_list=["user_id:token", "item_id:token"]):
 
 def main():
     for dataset in available_datasets:
-        DATASET_DIR = os.path.join(f"{BASE_DIR}, {dataset}_dataset")
+        DATASET_DIR = os.path.join(BASE_DIR, f"{dataset}_dataset")
         print(DATASET_DIR)
         if dataset not in available_datasets:
             print(f"Dataset '{dataset}' is not available.")
@@ -449,6 +454,7 @@ def main():
 
         # Create samples of 1500 users (except for foursquaretky where only 600 users are in the dataset)
         (
+            
             checkin_df_sample,
             high_pop_user_df_sample,
             med_pop_user_df_sample,
@@ -475,6 +481,7 @@ def main():
             user_df_sample,
             poi_df_sample,
             checkin_df_timestamp,
+            dataset
         )
         checkin_df_sample = user_id_token_adder(checkin_df_sample)
         high_pop_user_df_sample = user_id_token_adder(high_pop_user_df_sample)
