@@ -331,9 +331,12 @@ def id_factorizer(
         business_id_mapping
     )
 
+    user_id_mapping_flipped = {f"{i}_x": original for i, original in enumerate(user_id_map)}
+    business_id_mapping_flipped = {f"{j}_x": original for j, original in enumerate(business_id_map)}    
+
     
     with open(os.path.join(BASE_DIR, f"{dataset}_dataset", "id_mappings.json"), "w") as f:
-        json.dump({"user": user_id_mapping, "business": business_id_mapping}, f)
+        json.dump({"user": user_id_mapping_flipped, "business": business_id_mapping_flipped}, f)
 
     return (
         checkin_df_sample,
