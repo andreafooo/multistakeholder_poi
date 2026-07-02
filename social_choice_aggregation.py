@@ -120,10 +120,10 @@ def run_and_save_boosted_method(sc_method, model_name, model_dir, method_data, a
         folder_suffix = ""
     else:
         method_weights = {m: (boost_factor if m == boost_method else 1.0) for m in method_names}
-        folder_suffix = boost_method
+        folder_suffix = "2"+boost_method
 
     # e.g. "schulze2baseline", "schulze2cp_min_js"
-    sc_subfolder = f"{sc_method}2{folder_suffix}"
+    sc_subfolder = f"{sc_method}{folder_suffix}"
     results = {}
     user_list = list(all_user_ids)
 
