@@ -109,6 +109,31 @@ def jensen_shannon(profile_ratios, recommended_ratios):
 
 
 
+def agent_agreement(reference_list, candidate_list, k=None):
+    """
+    nDCG-style agreement between a candidate (e.g. social choice output) list and
+    a reference list (e.g. a single agent's own re-ranking).
+
+    Each item's relevance is graded by its rank in reference_list (1/log2(rank+2)).
+    Returns 1.0 iff candidate_list matches reference_list exactly within the top-k.
+    """
+    if k is None:
+        k = len(reference_list)
+
+    reference_list = reference_list[:k]
+    candidate_list = candidate_list[:k]
+
+    relevance = {item: 1.0 / log2(rank + 2) for rank, item in enumerate(reference_list)}
+
+    dcg = sum(
+        relevance.get(item, 0.0) / log2(pos + 2)
+        for pos, item in enumerate(candidate_list)
+    )
+    idcg = sum((1.0 / log2(rank + 2)) ** 2 for rank in range(len(reference_list)))
+
+    return dcg / idcg if idcg > 0 else 0.0
+
+
 def gini_index(item_ids, num_items):
     """
     Computes the Gini index over item exposure distribution.
