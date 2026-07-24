@@ -39,7 +39,9 @@ run_least_fair = False        # SCRUF-D "Least Fair" mechanism: single lowest-m_
 run_lottery = False         # SCRUF-D "Lottery" mechanism: single agent drawn ~ (1-m_i) each round
 _ci_suffix = "_ci" if use_ci else ""
 dynamic_methods = [
-    f"borda_weighted{_ci_suffix}", f"schulze_weighted{_ci_suffix}",
+    f"borda_weighted{_ci_suffix}", f"schulze_weighted{_ci_suffix}", 
+    "borda_weighted", "schulze_weighted",
     "borda_leastfair", "schulze_leastfair",  # leastfair ignores compatibility, never gets "_ci"
-    f"borda_lottery{_ci_suffix}", f"schulze_lottery{_ci_suffix}",
+    f"borda_lottery{_ci_suffix}", f"schulze_lottery{_ci_suffix}", 
+    "borda_lottery", "schulze_lottery"
 ]
