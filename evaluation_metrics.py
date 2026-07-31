@@ -1,6 +1,7 @@
 import numpy as np
 from math import radians, sin, cos, sqrt, atan2, log2
 from collections import Counter
+from rbo import RankingSimilarity
 
 
 def ndcg(test_data, df, top_k_eval=10):
@@ -132,6 +133,55 @@ def agent_agreement(reference_list, candidate_list, k=None):
     idcg = sum((1.0 / log2(rank + 2)) ** 2 for rank in range(len(reference_list)))
 
     return dcg / idcg if idcg > 0 else 0.0
+
+
+def rank_biased_overlap(reference_list, candidate_list, k=None):
+    """
+    Rank-biased overlap (Webber et al.) between a candidate list and a
+    reference list -- top-weighted alternative to the nDCG-style
+    agent_agreement, used for m_i.
+    """
+    return RankingSimilarity(list(reference_list), list(candidate_list)).rbo(k=k)
+
+
+def max_pairwise_haversine(item_coords):
+    """
+    Maximum pairwise great-circle distance (km) among all items in item_coords.
+    Used as a fixed, condition-independent normalization ceiling for GeoILD --
+    unlike JSD (bounded [0,1] by construction, log2-based) or ILD (bounded [0,1]
+    when built on cosine similarity over non-negative vectors), geographic
+    distance has no universal theoretical bound; the ceiling depends on this
+    dataset's own geographic extent, computed once from the catalog itself
+    rather than from whichever conditions happen to be in a comparison table.
+    """
+    coords = np.array(list(item_coords.values()), dtype=float)
+    lat = np.radians(coords[:, 0])
+    lon = np.radians(coords[:, 1])
+
+    dlat = lat[:, None] - lat[None, :]
+    dlon = lon[:, None] - lon[None, :]
+    a = np.sin(dlat / 2) ** 2 + np.cos(lat[:, None]) * np.cos(lat[None, :]) * np.sin(dlon / 2) ** 2
+    c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
+
+    R = 6371.0  # Earth radius in km, matches haversine()
+    return float((R * c).max())
+
+
+def l1_half_norm(m_bar_values):
+    """
+    L1/2 norm over per-agent global fairness values (e.g. each agent's mean
+    rank_biased_overlap with a condition's delivered output across a full run).
+    Summarizes multiple agents' fairness into one number that rewards balance,
+    not just a high average: two conditions with the same mean m_bar score
+    differently if one serves all agents evenly and the other neglects some.
+
+    m_bar_values: {agent_name: m_bar_i}, each m_bar_i in [0, 1].
+    Returns (1/d^2) * (sum(sqrt(m_bar_i)))^2, where d = len(m_bar_values);
+    equals the shared value exactly when all agents are equally fair.
+    """
+    d = len(m_bar_values)
+    sqrt_sum = sum(np.sqrt(v) for v in m_bar_values.values())
+    return (1.0 / d**2) * (sqrt_sum**2)
 
 
 def gini_index(item_ids, num_items):

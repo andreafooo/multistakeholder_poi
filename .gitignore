@@ -7,4 +7,5 @@ log_tensorboard
 venv
 datasets/foursquaretky_dataset/plots/
 datasets/yelp_dataset/plots/
+.env
 

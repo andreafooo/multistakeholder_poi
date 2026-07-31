@@ -15,7 +15,7 @@ class FairnessTracker:
         self.history = {agent: deque(maxlen=window) for agent in agents}
 
     def update(self, agreement_scores):
-        """agreement_scores: {agent_name: agent_agreement(agent_list, delivered_list)}"""
+        """agreement_scores: {agent_name: rank_biased_overlap(agent_list, delivered_list)}"""
         for agent, score in agreement_scores.items():
             if agent in self.history:
                 self.history[agent].append(score)

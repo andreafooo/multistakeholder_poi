@@ -6,7 +6,7 @@ from datetime import datetime
 from votekit.ballot import Ballot
 from votekit.pref_profile import PreferenceProfile
 from votekit.elections import Schulze, Borda
-from evaluation_metrics import agent_agreement
+from evaluation_metrics import agent_agreement, rank_biased_overlap
 from dynamic_allocation import (
     FairnessTracker,
     compute_weights,
@@ -208,8 +208,8 @@ def build_user_recs(user_id, method_data):
 def run_and_save_dynamic_method(sc_method, model_name, model_dir, method_data, all_user_ids, dataset, n_seats=top_k_eval):
     """
     Run social choice with per-user dynamic ballot weights (SCRUF-D "Weighted" mechanism).
-    Each fairness agent's weight is beta_i ~ (1 - m_i) * c_i, where m_i is its agreement
-    (agent_agreement) with the delivered output over a sliding window of recently
+    Each fairness agent's weight is beta_i ~ (1 - m_i) * c_i, where m_i is its rank-biased
+    overlap (rank_biased_overlap) with the delivered output over a sliding window of recently
     processed users, and c_i is its per-user compatibility -- agent_agreement between
     the agent's own re-ranking and the baseline list for this user, as a proxy for the
     user profile omega (see `use_ci`; treated as 1.0/neutral when False). baseline is
@@ -267,7 +267,7 @@ def run_and_save_dynamic_method(sc_method, model_name, model_dir, method_data, a
         weight_log[user_id] = method_weights
 
         agreement_scores = {
-            agent: agent_agreement(user_recs[agent], delivered_list, k=n_seats)
+            agent: rank_biased_overlap(user_recs[agent], delivered_list, k=n_seats)
             for agent in fairness_agents
             if agent in user_recs
         }
@@ -302,7 +302,7 @@ def run_and_save_single_agent_method(sc_method, model_name, model_dir, method_da
     The chosen agent receives the full fairness-agent mass (len(fairness_agents)) so all
     three mechanisms (Weighted, Lottery, Least Fair) are comparable on equal total voting
     power; the other fairness agents sit out that round but are still tracked via their
-    agreement with the delivered output, for future selection.
+    rank-biased overlap with the delivered output, for future selection.
 
     Saves to '<sc_method>_leastfair/' or '<sc_method>_lottery[_ci]/', plus a per-user choice log.
     Leastfair ignores compatibility entirely, so its folder name never gets the "_ci" suffix.
@@ -363,7 +363,7 @@ def run_and_save_single_agent_method(sc_method, model_name, model_dir, method_da
         choice_log[user_id] = {"chosen": chosen_agent, "mi": mi_scores, "ci": ci_scores}
 
         agreement_scores = {
-            agent: agent_agreement(user_recs[agent], delivered_list, k=n_seats)
+            agent: rank_biased_overlap(user_recs[agent], delivered_list, k=n_seats)
             for agent in fairness_agents
             if agent in user_recs
         }
