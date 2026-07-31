@@ -18,6 +18,11 @@ def compute_and_save_max_geo_distance(dataset):
     item_coords = dict(zip(poi_df["item_id:token"], zip(poi_df["lat:float"], poi_df["lon:float"])))
 
     max_distance_km = max_pairwise_haversine(item_coords)
+    assert max_distance_km > 0, (
+        f"{dataset}: max pairwise catalog distance is {max_distance_km} (<= 0) -- "
+        "degenerate catalog (single point, or duplicate coordinates only)? "
+        "GeoILD normalization divides by this value."
+    )
 
     out_path = os.path.join(BASE_DIR, f"{dataset}_dataset", f"{dataset}_max_geo_distance.json")
     with open(out_path, "w") as f:
