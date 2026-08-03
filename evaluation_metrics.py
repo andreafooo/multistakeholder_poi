@@ -109,6 +109,56 @@ def jensen_shannon(profile_ratios, recommended_ratios):
     return js
 
 
+def jensen_shannon_per_user(user_profiles, recs_df, item_pop_col="item_pop_group"):
+    """
+    Per-user Jensen-Shannon divergence between a user's own popularity profile
+    (h/m/t ratio of their training check-ins) and their own delivered top-k list,
+    as opposed to the group-level `jensen_shannon` above which compares a whole
+    group's aggregate ratios. `user_profiles` is the per-user ratio table from
+    platform_reranker.calculate_user_popularity_distributions (has h_ratio/
+    m_ratio/t_ratio); `recs_df` is the delivered top-k, already merged with
+    item_popularity so it carries `item_pop_col`.
+
+    Returns {user_id: jsd_score}.
+    """
+    profiles = user_profiles.set_index("user_id:token")[["h_ratio", "m_ratio", "t_ratio"]]
+
+    scores = {}
+    for user_id, group in recs_df.groupby("user_id:token"):
+        if user_id not in profiles.index:
+            continue
+        profile_ratios = profiles.loc[user_id].to_dict()
+        rec_counts = group[item_pop_col].value_counts(normalize=True)
+        recommended_ratios = {f"{g}_ratio": rec_counts.get(g, 0.0) for g in ("h", "m", "t")}
+        scores[user_id] = jensen_shannon(profile_ratios, recommended_ratios)
+    return scores
+
+
+def per_user_distribution_stats(per_user_by_group):
+    """
+    Median/std/min/max per metric per group, complementing the group means already
+    produced by evaluation_user_group_means -- gives the shape of the per-user
+    distribution (e.g. a long worst-case tail hidden behind a fine-looking mean),
+    not just its center.
+
+    per_user_by_group: {metric: {group_name: {user_id: score}}}, as returned by
+    evaluation_user_group_means.
+    Returns {group_name: {metric: {"median", "std", "min", "max"}}}.
+    """
+    stats = {}
+    for metric, by_group in per_user_by_group.items():
+        for group_name, scores in by_group.items():
+            vals = list(scores.values())
+            if not vals:
+                continue
+            stats.setdefault(group_name, {})[metric] = {
+                "median": float(np.median(vals)),
+                "std": float(np.std(vals)),
+                "min": float(np.min(vals)),
+                "max": float(np.max(vals)),
+            }
+    return stats
+
 
 def agent_agreement(reference_list, candidate_list, k=None):
     """
@@ -275,6 +325,52 @@ def geographic_ild_per_user(df, item_coords, warn_threshold_m=1.0):
                 distances.append(dist_km)
 
         scores[user_id] = float(np.mean(distances))
+    return scores
+
+
+def geo_distance_std_per_user(df, item_coords):
+    """
+    Computes the standard deviation of all-pairs haversine distances (km)
+    between a user's reviewed businesses. Returns dict {user_id: std_km}.
+    """
+    scores = {}
+    for user_id, group in df.groupby("user_id:token"):
+        items = group["item_id:token"].tolist()
+        coords = [item_coords[i] for i in items if i in item_coords]
+
+        if len(coords) < 2:
+            scores[user_id] = 0.0
+            continue
+
+        distances = [
+            haversine(*coords[a], *coords[b])
+            for a in range(len(coords))
+            for b in range(a + 1, len(coords))
+        ]
+        scores[user_id] = float(np.std(distances))
+    return scores
+
+
+def geo_distance_max_per_user(df, item_coords):
+    """
+    Computes the maximum all-pairs haversine distance (km) between a user's
+    reviewed businesses. Returns dict {user_id: max_km}.
+    """
+    scores = {}
+    for user_id, group in df.groupby("user_id:token"):
+        items = group["item_id:token"].tolist()
+        coords = [item_coords[i] for i in items if i in item_coords]
+
+        if len(coords) < 2:
+            scores[user_id] = 0.0
+            continue
+
+        distances = [
+            haversine(*coords[a], *coords[b])
+            for a in range(len(coords))
+            for b in range(a + 1, len(coords))
+        ]
+        scores[user_id] = float(np.max(distances))
     return scores
 
 
