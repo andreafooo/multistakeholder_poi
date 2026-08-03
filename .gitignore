@@ -13,3 +13,8 @@ recbole_general_recs/.data_path_override.yaml
 *choice_log.json
 *top_k_recommendations.json
 *dynamic_weights_log.json
+*foursquare_data.csv
+*_metadata.csv
+*_business.json
+*_review.json
+*user.json
