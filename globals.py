@@ -8,11 +8,11 @@ PROJECT_BASE = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.join(PROJECT_BASE, "datasets") 
 
 datasets_for_recbole = [
-    "yelp_sample", "foursquaretky_sample"
+ "foursquaretky_sample", "yelp_sample"
 ]  # add datasets for recbole from above with "_sample" suffix - make sure to add them to recbole_general_recs/dataset
 
 models_for_recbole = [
-    "BPR"
+    "NeuMF"
 ]  # add general recommendation models as baseline (e.g. BPR, SimpleX, ItemKNN, etc.)
 top_k_resample = 150
 top_k_eval = 10
