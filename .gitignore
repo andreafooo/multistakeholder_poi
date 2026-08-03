@@ -17,4 +17,5 @@ recbole_general_recs/.data_path_override.yaml
 *_metadata.csv
 *_business.json
 *_review.json
-*user.json
+*_user.json
+*yelp_sample_business_metadata.csv
