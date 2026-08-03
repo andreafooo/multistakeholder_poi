@@ -1,19 +1,30 @@
+import os
+import sys
+import types
+
+# recbole.model.general_recommender's __init__ eagerly imports LDiffRec, which
+# imports kmeans_pytorch at module level. get_model() (used by run_recbole to
+# resolve BPR/NeuMF by name) triggers that whole package import, so without
+# kmeans_pytorch installed every run crashes even though we never touch LDiffRec.
+# Stub it out instead of requiring a hand-edit to the installed recbole package.
+if "kmeans_pytorch" not in sys.modules:
+    try:
+        import kmeans_pytorch  # noqa: F401
+    except ImportError:
+        _kmeans_pytorch_stub = types.ModuleType("kmeans_pytorch")
+        _kmeans_pytorch_stub.kmeans = None
+        sys.modules["kmeans_pytorch"] = _kmeans_pytorch_stub
+
 from recbole.quick_start import run_recbole
 from recbole.utils.case_study import full_sort_topk
 from recbole.quick_start import load_data_and_model
 import pandas as pd
 import json
-import os
 import yaml
 import glob
 
-
-import sys
-
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from globals import PROJECT_BASE, BASE_DIR, datasets_for_recbole, models_for_recbole
-
-""" In case of an error, comment out #from kmeans_pytorch import kmeans in the recbole package: recbole/model/general_recommender/ldiffrec.py """
 
 
 def extract_test_data(model_file):

@@ -1,0 +1,5 @@
+learning_rate choice [0.01,0.001,0.0001]
+mf_embedding_size choice [32,64,96]
+train_batch_size choice [512,1024,2048]
+mlp_hidden_size choice ['[64,32,16]','[128,64,32]','[32,16,8]']
+dropout_prob choice [0.0,0.1,0.2,0.3]

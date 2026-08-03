@@ -8,4 +8,8 @@ venv
 datasets/foursquaretky_dataset/plots/
 datasets/yelp_dataset/plots/
 .env
-
+recbole_general_recs/.data_path_override.yaml
+*max_geo_distance.json
+*choice_log.json
+*top_k_recommendations.json
+*dynamic_weights_log.json
