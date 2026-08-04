@@ -160,36 +160,10 @@ def per_user_distribution_stats(per_user_by_group):
     return stats
 
 
-def agent_agreement(reference_list, candidate_list, k=None):
-    """
-    nDCG-style agreement between a candidate (e.g. social choice output) list and
-    a reference list (e.g. a single agent's own re-ranking).
-
-    Each item's relevance is graded by its rank in reference_list (1/log2(rank+2)).
-    Returns 1.0 iff candidate_list matches reference_list exactly within the top-k.
-    """
-    if k is None:
-        k = len(reference_list)
-
-    reference_list = reference_list[:k]
-    candidate_list = candidate_list[:k]
-
-    relevance = {item: 1.0 / log2(rank + 2) for rank, item in enumerate(reference_list)}
-
-    dcg = sum(
-        relevance.get(item, 0.0) / log2(pos + 2)
-        for pos, item in enumerate(candidate_list)
-    )
-    idcg = sum((1.0 / log2(rank + 2)) ** 2 for rank in range(len(reference_list)))
-
-    return dcg / idcg if idcg > 0 else 0.0
-
-
 def rank_biased_overlap(reference_list, candidate_list, k=None):
     """
     Rank-biased overlap (Webber et al.) between a candidate list and a
-    reference list -- top-weighted alternative to the nDCG-style
-    agent_agreement, used for m_i.
+    reference list -- top-weighted, used for m_i.
     """
     return RankingSimilarity(list(reference_list), list(candidate_list)).rbo(k=k)
 
@@ -215,23 +189,6 @@ def max_pairwise_haversine(item_coords):
 
     R = 6371.0  # Earth radius in km, matches haversine()
     return float((R * c).max())
-
-
-def l1_half_norm(m_bar_values):
-    """
-    L1/2 norm over per-agent global fairness values (e.g. each agent's mean
-    rank_biased_overlap with a condition's delivered output across a full run).
-    Summarizes multiple agents' fairness into one number that rewards balance,
-    not just a high average: two conditions with the same mean m_bar score
-    differently if one serves all agents evenly and the other neglects some.
-
-    m_bar_values: {agent_name: m_bar_i}, each m_bar_i in [0, 1].
-    Returns (1/d^2) * (sum(sqrt(m_bar_i)))^2, where d = len(m_bar_values);
-    equals the shared value exactly when all agents are equally fair.
-    """
-    d = len(m_bar_values)
-    sqrt_sum = sum(np.sqrt(v) for v in m_bar_values.values())
-    return (1.0 / d**2) * (sqrt_sum**2)
 
 
 def gini_index(item_ids, num_items):
