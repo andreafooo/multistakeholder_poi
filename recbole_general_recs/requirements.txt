@@ -68,8 +68,6 @@ pingouin==0.5.5
 platformdirs==4.9.6
 plotly==6.0.1
 pm-implicit==0.7.3
--e git+https://github.com/andreafooo/POI_RS_PopBias_Mitigation.git@b95d80aa624d8c56f7950eb5c230493cdc3033b9#egg=poi_popularity_calibration
--e git+https://github.com/andreafooo/POI_RS_PopBias_Mitigation.git@b95d80aa624d8c56f7950eb5c230493cdc3033b9#egg=poi_rs_popbias_mitigation
 prompt_toolkit==3.0.52
 protobuf==7.34.1
 psutil==7.2.2
