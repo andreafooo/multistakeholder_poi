@@ -12,7 +12,7 @@ datasets_for_recbole = [
 ]  # add datasets for recbole from above with "_sample" suffix - make sure to add them to recbole_general_recs/dataset
 
 models_for_recbole = [
-    "NeuMF"
+    "BPR", "NeuMF"
 ]  # add general recommendation models as baseline (e.g. BPR, SimpleX, ItemKNN, etc.)
 top_k_resample = 150
 top_k_eval = 10
