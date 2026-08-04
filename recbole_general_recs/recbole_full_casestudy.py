@@ -49,7 +49,14 @@ def find_newest_model(directory):
 
 
 def run_configurations(config):
-    output_dict = run_recbole(config_file_list=[config])
+    # config_test.yaml intentionally has no data_path baked in (see
+    # config_hyperparameter_creator.py) since a hardcoded path there isn't
+    # portable across machines and leaks whoever generated it into git. Inject
+    # it here instead, resolved from this machine's own checkout.
+    data_path = os.path.join(PROJECT_BASE, "recbole_general_recs", "dataset") + os.sep
+    output_dict = run_recbole(
+        config_file_list=[config], config_dict={"data_path": data_path}
+    )
     directory = "saved/"
     newest_model_file = find_newest_model(directory)
 
