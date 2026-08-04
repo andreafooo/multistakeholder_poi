@@ -36,13 +36,13 @@ dynamic_seed = 42            # fixed seed for shuffling user processing order (s
 # Per-variant on/off switches -- each is independently re-runnable without touching the others.
 # "mi" = weighted/drawn from (1 - m_i) alone; "ci" = from c_i alone; "mi_ci" = from (1 - m_i) * c_i (SCRUF-D default).
 run_static_sc = False        # equal-weight run (borda/schulze as-is, no fairness reweighting)
-run_least_fair = False       # SCRUF-D "Least Fair": deterministic single lowest-m_i agent active each round
-run_weighted_mi = False      # SCRUF-D "Weighted", source="mi"
-run_weighted_ci = False      # SCRUF-D "Weighted", source="ci"
-run_weighted_mi_ci = True    # SCRUF-D "Weighted", source="mi_ci"
-run_lottery_mi = False       # SCRUF-D "Lottery", source="mi"
-run_lottery_ci = False       # SCRUF-D "Lottery", source="ci"
-run_lottery_mi_ci = False    # SCRUF-D "Lottery", source="mi_ci"
+run_least_fair = True       # SCRUF-D "Least Fair": deterministic single lowest-m_i agent active each round
+run_weighted_mi = True      # SCRUF-D "Weighted", source="mi"
+run_weighted_ci = True      # SCRUF-D "Weighted", source="ci"
+run_weighted_mi_ci = False    # SCRUF-D "Weighted", source="mi_ci"
+run_lottery_mi = True       # SCRUF-D "Lottery", source="mi"
+run_lottery_ci = True       # SCRUF-D "Lottery", source="ci"
+run_lottery_mi_ci = True    # SCRUF-D "Lottery", source="mi_ci"
 
 dynamic_methods = [
     "borda_leastfair", "borda_weighted_mi", "borda_weighted_ci", "borda_weighted_mi_ci",
