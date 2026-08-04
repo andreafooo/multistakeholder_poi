@@ -32,28 +32,39 @@ class FairnessTracker:
         }
 
 
-def raw_unfairness(mi_scores, fairness_agents, ci_scores=None, floor=0.0):
+def raw_weight_score(mi_scores, fairness_agents, ci_scores=None, source="mi_ci", floor=0.0):
     """
-    Shared raw (1 - m_i) * c_i score per fairness agent -- the common input to all
-    three SCRUF-D allocation mechanisms (Weighted, Lottery, Least Fair).
-    ci_scores=None means compatibility is left out (c_i treated as 1.0/neutral for all agents).
+    Shared raw per-agent score, feeding both the Weighted and Lottery mechanisms.
+    `source` selects which signal(s) drive the score:
+      - "mi":    1 - m_i alone (unfairness-so-far; ignores compatibility)
+      - "ci":    c_i alone (compatibility; ignores unfairness-so-far)
+      - "mi_ci": (1 - m_i) * c_i (SCRUF-D default)
+    ci_scores is required whenever `source` is "ci" or "mi_ci".
     """
     raw = {}
     for agent in fairness_agents:
         unfairness = 1.0 - mi_scores.get(agent, 1.0)
         compatibility = ci_scores[agent] if ci_scores else 1.0
-        raw[agent] = max(unfairness * compatibility, floor)
+        if source == "mi":
+            score = unfairness
+        elif source == "ci":
+            score = compatibility
+        elif source == "mi_ci":
+            score = unfairness * compatibility
+        else:
+            raise ValueError(f"Unknown weighting source: {source!r}")
+        raw[agent] = max(score, floor)
     return raw
 
 
-def compute_weights(mi_scores, fairness_agents, ci_scores=None, baseline_weight=1.0, floor=0.0):
+def compute_weights(mi_scores, fairness_agents, ci_scores=None, source="mi_ci", baseline_weight=1.0, floor=0.0):
     """
-    SCRUF-D "Weighted" mechanism: beta_i ~ (1 - m_i) * c_i, normalized so the
-    fairness agents' weights always sum to len(fairness_agents) -- i.e. the same
-    total ballot mass as an equal-weight run, just redistributed among them.
+    SCRUF-D "Weighted" mechanism: beta_i ~ raw_weight_score(..., source), normalized
+    so the fairness agents' weights always sum to len(fairness_agents) -- i.e. the
+    same total ballot mass as an equal-weight run, just redistributed among them.
     baseline is always allocated at a fixed weight, outside this computation.
     """
-    raw = raw_unfairness(mi_scores, fairness_agents, ci_scores, floor)
+    raw = raw_weight_score(mi_scores, fairness_agents, ci_scores, source, floor)
 
     total = sum(raw.values())
     n = len(fairness_agents)
@@ -72,16 +83,16 @@ def select_least_fair(mi_scores, fairness_agents):
     return min(fairness_agents, key=lambda agent: mi_scores.get(agent, 1.0))
 
 
-def select_lottery(mi_scores, fairness_agents, rng, ci_scores=None):
+def select_lottery(mi_scores, fairness_agents, rng, ci_scores=None, source="mi_ci"):
     """
     SCRUF-D "Lottery" mechanism: draw a single fairness agent with probability
-    p(f_i) ~ (1 - m_i) * c_i, normalized to sum to 1. Falls back to a uniform
-    draw if every agent's raw score is 0 (e.g. cold start, m_i defaults to 1.0
-    for everyone with no history yet).
+    p(f_i) ~ raw_weight_score(..., source), normalized to sum to 1. Falls back to
+    a uniform draw if every agent's raw score is 0 (e.g. cold start, m_i defaults
+    to 1.0 for everyone with no history yet).
     `rng` must be a persistent random.Random instance, reused across calls so
     draws form one reproducible sequence for the whole run.
     """
-    raw = raw_unfairness(mi_scores, fairness_agents, ci_scores, floor=0.0)
+    raw = raw_weight_score(mi_scores, fairness_agents, ci_scores, source, floor=0.0)
     total = sum(raw.values())
 
     if total <= 0:

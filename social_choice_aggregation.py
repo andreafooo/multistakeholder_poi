@@ -1,12 +1,14 @@
 import os
 import json
 import random
+import pandas as pd
 from tqdm import tqdm
 from datetime import datetime
 from votekit.ballot import Ballot
-from votekit.pref_profile import PreferenceProfile
+from votekit.pref_profile import PreferenceProfile, RankProfile
 from votekit.elections import Schulze, Borda
-from evaluation_metrics import agent_agreement, rank_biased_overlap
+from evaluation_metrics import rank_biased_overlap
+from compute_user_compatibility import load_user_compatibility
 from dynamic_allocation import (
     FairnessTracker,
     compute_weights,
@@ -24,15 +26,52 @@ from globals import (
     boosting,
     run_static_sc,
     BASE_DIR,
-    dynamic_allocation,
     run_least_fair,
-    run_lottery,
+    run_weighted_mi,
+    run_weighted_ci,
+    run_weighted_mi_ci,
+    run_lottery_mi,
+    run_lottery_ci,
+    run_lottery_mi_ci,
     fairness_agents,
     dynamic_window,
     dynamic_weight_floor,
-    use_ci,
     dynamic_seed,
 )
+
+
+def _defragmented_group_ballots(self):
+    """
+    Drop-in replacement for votekit's RankProfile.group_ballots(). The original
+    groups ballots via groupby().aggregate(...).reset_index(), and reset_index()
+    inserts one column per Ranking_i level one at a time -- with enough ranking
+    columns (i.e. large top_k_resample/candidate pools) that triggers pandas'
+    "DataFrame is highly fragmented" PerformanceWarning on every user, since this
+    runs once per user in run_social_choice_for_user. Building the ranking columns
+    and the aggregated columns as two frames and joining them with a single
+    pd.concat(axis=1) avoids the per-column inserts entirely (verified to produce
+    an identical df, just without the fragmentation).
+    """
+    if len(self.df) == 0:
+        return RankProfile(candidates=self.candidates, max_ranking_length=self.max_ranking_length)
+
+    ranking_cols = [c for c in self.df.columns if "Ranking_" in c]
+    group_df = self.df.groupby(ranking_cols, dropna=False)
+    aggregated = group_df.aggregate(
+        {
+            "Weight": "sum",
+            "Voter Set": (lambda sets: set().union(*sets)),
+        }
+    )
+    index_df = aggregated.index.to_frame(index=False)
+    index_df.index = aggregated.index
+    new_df = pd.concat([index_df, aggregated], axis=1).reset_index(drop=True)
+    new_df.index.name = "Ballot Index"
+
+    return RankProfile(df=new_df, candidates=self.candidates, max_ranking_length=self.max_ranking_length)
+
+
+RankProfile.group_ballots = _defragmented_group_ballots
 
 
 def candidates_to_ballot(candidates_list):
@@ -205,116 +244,56 @@ def build_user_recs(user_id, method_data):
     return user_recs, user_candidates
 
 
-def run_and_save_dynamic_method(sc_method, model_name, model_dir, method_data, all_user_ids, dataset, n_seats=top_k_eval):
+_WEIGHTED_SUFFIXES = {"mi": "_weighted_mi", "ci": "_weighted_ci", "mi_ci": "_weighted_mi_ci"}
+_LOTTERY_SUFFIXES = {"mi": "_lottery_mi", "ci": "_lottery_ci", "mi_ci": "_lottery_mi_ci"}
+
+
+def run_and_save_mechanism(sc_method, model_name, model_dir, method_data, all_user_ids, dataset,
+                            mechanism, weighting_source=None, n_seats=top_k_eval, user_compatibility=None):
     """
-    Run social choice with per-user dynamic ballot weights (SCRUF-D "Weighted" mechanism).
-    Each fairness agent's weight is beta_i ~ (1 - m_i) * c_i, where m_i is its rank-biased
-    overlap (rank_biased_overlap) with the delivered output over a sliding window of recently
-    processed users, and c_i is its per-user compatibility -- agent_agreement between
-    the agent's own re-ranking and the baseline list for this user, as a proxy for the
-    user profile omega (see `use_ci`; treated as 1.0/neutral when False). baseline is
-    always allocated at a fixed weight of 1.0.
+    Run one SCRUF-D dynamic-allocation variant and save it. Covers all three mechanisms:
 
-    Users are processed in a fixed-seed shuffled order to simulate a stream; the
-    window is expanding (no separate burn-in), so only the very first user has no
-    history to react to. Saves to '<sc_method>_weighted[_ci]/', plus a per-user weight log.
+    - "least_fair": deterministically pick the single lowest-m_i fairness agent each round
+      (ignores compatibility entirely -- that's the mechanism's definition).
+    - "weighted":   redistribute continuous weight across all fairness agents, beta_i ~
+      raw_weight_score(..., weighting_source); baseline stays fixed at 1.0.
+    - "lottery":    draw a single fairness agent each round with probability ~
+      raw_weight_score(..., weighting_source); the drawn agent gets the full
+      fairness-agent mass (len(fairness_agents)) alongside baseline, so it's
+      comparable in total voting power to "weighted" and "least_fair".
+
+    `weighting_source` (required for "weighted"/"lottery", ignored for "least_fair"):
+      "mi" (1 - m_i alone), "ci" (c_i alone), or "mi_ci" ((1 - m_i) * c_i, SCRUF-D default).
+
+    m_i is each agent's rank-biased overlap with the delivered output over a sliding
+    window of recently processed users (see FairnessTracker); c_i is its precomputed
+    per-user compatibility (compute_user_compatibility.py), a proxy for the user
+    profile omega. Users are processed in a fixed-seed shuffled order to simulate a
+    stream; the window is expanding (no separate burn-in), so only the very first
+    user has no history to react to.
+
+    Saves to '<sc_method>_leastfair/', '<sc_method>_weighted_<mi|ci|mi_ci>/', or
+    '<sc_method>_lottery_<mi|ci|mi_ci>/', plus a per-user log (weights for "weighted",
+    chosen agent + mi/ci for "least_fair"/"lottery").
     """
-    sc_subfolder = f"{sc_method}_weighted" + ("_ci" if use_ci else "")
-    tracker = FairnessTracker(fairness_agents, window=dynamic_window)
-    results = {}
-    weight_log = {}
+    if mechanism not in ("least_fair", "weighted", "lottery"):
+        raise ValueError(f"Unknown mechanism: {mechanism!r}")
+    if mechanism != "least_fair" and weighting_source not in ("mi", "ci", "mi_ci"):
+        raise ValueError(f"weighting_source must be 'mi', 'ci', or 'mi_ci' for mechanism={mechanism!r}")
 
-    user_list = stream_order(all_user_ids, seed=dynamic_seed)
+    needs_ci = weighting_source in ("ci", "mi_ci")
 
-    for user_id in tqdm(user_list, desc=f"Processing {model_name}-{sc_subfolder}", unit="user"):
+    if mechanism == "least_fair":
+        sc_subfolder = f"{sc_method}_leastfair"
+    elif mechanism == "weighted":
+        sc_subfolder = f"{sc_method}{_WEIGHTED_SUFFIXES[weighting_source]}"
+    else:
+        sc_subfolder = f"{sc_method}{_LOTTERY_SUFFIXES[weighting_source]}"
 
-        user_recs, user_candidates = build_user_recs(user_id, method_data)
-        if not user_recs:
-            continue
-
-        mi_scores = tracker.mi()
-
-        ci_scores = None
-        if use_ci:
-            ci_scores = {
-                agent: agent_agreement(user_recs[agent], user_recs.get("baseline", []), k=n_seats)
-                for agent in fairness_agents
-                if agent in user_recs
-            }
-
-        method_weights = compute_weights(
-            mi_scores,
-            fairness_agents,
-            ci_scores=ci_scores,
-            baseline_weight=1.0,
-            floor=dynamic_weight_floor,
-        )
-
-        result = run_social_choice_for_user(
-            user_id,
-            user_recs,
-            list(user_candidates),
-            n_seats=n_seats,
-            method=sc_method,
-            method_weights=method_weights,
-        )
-
-        if not result:
-            continue
-
-        delivered_list = flatten_winners(result.get_elected())
-        results[user_id] = delivered_list
-        weight_log[user_id] = method_weights
-
-        agreement_scores = {
-            agent: rank_biased_overlap(user_recs[agent], delivered_list, k=n_seats)
-            for agent in fairness_agents
-            if agent in user_recs
-        }
-        tracker.update(agreement_scores)
-
-    output_dir = get_sc_output_dir(
-        dataset=dataset,
-        model_dir=model_dir,
-        sc_method=sc_subfolder
-    )
-    output_file = os.path.join(output_dir, "top_k_recommendations.json")
-
-    with open(output_file, "w") as f:
-        json.dump(results, f, indent=4)
-
-    weight_log_file = os.path.join(output_dir, "dynamic_weights_log.json")
-    with open(weight_log_file, "w") as f:
-        json.dump(weight_log, f, indent=4)
-
-    print(f"\n{sc_subfolder} results for {model_name} saved to: {output_file}")
-    print(f"Total users processed: {len(results)}")
-
-
-def run_and_save_single_agent_method(sc_method, model_name, model_dir, method_data, all_user_ids, dataset,
-                                      mechanism, n_seats=top_k_eval):
-    """
-    Run social choice where a single fairness agent is active each round, chosen either
-    deterministically ("leastfair": lowest m_i, ignores compatibility) or stochastically
-    ("lottery": drawn with probability ~ (1-m_i)*c_i, c_i per-user via agent_agreement
-    against baseline when `use_ci` is on), alongside the always-on baseline.
-
-    The chosen agent receives the full fairness-agent mass (len(fairness_agents)) so all
-    three mechanisms (Weighted, Lottery, Least Fair) are comparable on equal total voting
-    power; the other fairness agents sit out that round but are still tracked via their
-    rank-biased overlap with the delivered output, for future selection.
-
-    Saves to '<sc_method>_leastfair/' or '<sc_method>_lottery[_ci]/', plus a per-user choice log.
-    Leastfair ignores compatibility entirely, so its folder name never gets the "_ci" suffix.
-    """
-    if mechanism not in ("leastfair", "lottery"):
-        raise ValueError(f"Unknown single-agent mechanism: {mechanism}")
-
-    sc_subfolder = f"{sc_method}_{mechanism}" + ("_ci" if (use_ci and mechanism == "lottery") else "")
     tracker = FairnessTracker(fairness_agents, window=dynamic_window)
     rng = random.Random(dynamic_seed) if mechanism == "lottery" else None
     results = {}
-    choice_log = {}
+    per_user_log = {}
 
     user_list = stream_order(all_user_ids, seed=dynamic_seed)
 
@@ -327,24 +306,34 @@ def run_and_save_single_agent_method(sc_method, model_name, model_dir, method_da
         mi_scores = tracker.mi()
 
         ci_scores = None
-        if use_ci and mechanism == "lottery":
+        if needs_ci:
+            user_comp = user_compatibility.get(user_id, {}) if user_compatibility else {}
             ci_scores = {
-                agent: agent_agreement(user_recs[agent], user_recs.get("baseline", []), k=n_seats)
+                agent: user_comp.get(agent, 1.0)
                 for agent in fairness_agents
                 if agent in user_recs
             }
 
-        chosen_agent = (
-            select_least_fair(mi_scores, fairness_agents)
-            if mechanism == "leastfair"
-            else select_lottery(mi_scores, fairness_agents, rng, ci_scores=ci_scores)
-        )
-
-        active_recs = {name: recs for name, recs in user_recs.items() if name in ("baseline", chosen_agent)}
-        if not active_recs:
-            continue
-
-        method_weights = {chosen_agent: float(len(fairness_agents)), "baseline": 1.0}
+        if mechanism == "weighted":
+            active_recs = user_recs
+            method_weights = compute_weights(
+                mi_scores,
+                fairness_agents,
+                ci_scores=ci_scores,
+                source=weighting_source,
+                baseline_weight=1.0,
+                floor=dynamic_weight_floor,
+            )
+        else:
+            chosen_agent = (
+                select_least_fair(mi_scores, fairness_agents)
+                if mechanism == "least_fair"
+                else select_lottery(mi_scores, fairness_agents, rng, ci_scores=ci_scores, source=weighting_source)
+            )
+            active_recs = {name: recs for name, recs in user_recs.items() if name in ("baseline", chosen_agent)}
+            if not active_recs:
+                continue
+            method_weights = {chosen_agent: float(len(fairness_agents)), "baseline": 1.0}
 
         result = run_social_choice_for_user(
             user_id,
@@ -360,7 +349,9 @@ def run_and_save_single_agent_method(sc_method, model_name, model_dir, method_da
 
         delivered_list = flatten_winners(result.get_elected())
         results[user_id] = delivered_list
-        choice_log[user_id] = {"chosen": chosen_agent, "mi": mi_scores, "ci": ci_scores}
+        per_user_log[user_id] = (
+            method_weights if mechanism == "weighted" else {"chosen": chosen_agent, "mi": mi_scores, "ci": ci_scores}
+        )
 
         agreement_scores = {
             agent: rank_biased_overlap(user_recs[agent], delivered_list, k=n_seats)
@@ -379,9 +370,9 @@ def run_and_save_single_agent_method(sc_method, model_name, model_dir, method_da
     with open(output_file, "w") as f:
         json.dump(results, f, indent=4)
 
-    choice_log_file = os.path.join(output_dir, "choice_log.json")
-    with open(choice_log_file, "w") as f:
-        json.dump(choice_log, f, indent=4)
+    log_name = "dynamic_weights_log.json" if mechanism == "weighted" else "choice_log.json"
+    with open(os.path.join(output_dir, log_name), "w") as f:
+        json.dump(per_user_log, f, indent=4)
 
     print(f"\n{sc_subfolder} results for {model_name} saved to: {output_file}")
     print(f"Total users processed: {len(results)}")
@@ -486,6 +477,22 @@ def timestamp_creator():
     """Generate a base timestamp as str"""
     return datetime.now().strftime("%b-%d-%Y_%H-%M-%S")
 
+# (mechanism, weighting_source, on/off flag) -- drives the dynamic-allocation loop in main().
+# weighting_source is None for "least_fair" (it ignores compatibility entirely, per the mechanism).
+DYNAMIC_VARIANTS = [
+    ("least_fair", None, run_least_fair),
+    ("weighted", "mi", run_weighted_mi),
+    ("weighted", "ci", run_weighted_ci),
+    ("weighted", "mi_ci", run_weighted_mi_ci),
+    ("lottery", "mi", run_lottery_mi),
+    ("lottery", "ci", run_lottery_ci),
+    ("lottery", "mi_ci", run_lottery_mi_ci),
+]
+_NEEDS_USER_COMPATIBILITY = any(
+    flag for _, source, flag in DYNAMIC_VARIANTS if source in ("ci", "mi_ci")
+)
+
+
 def main():
     for dataset in available_datasets:
         print(f"\n{'='*60}")
@@ -496,7 +503,9 @@ def main():
 
         print(f"Models to process: {list(sc_dict.keys())}")
         print(f"Expected models: {sc_models}")
-        
+
+        user_compatibility = load_user_compatibility(dataset) if _NEEDS_USER_COMPATIBILITY else None
+
         # Process each model separately
         for model_name, paths in sc_dict.items():
             print(f"\n{'='*60}")
@@ -576,45 +585,23 @@ def main():
                         boost_method=None,          # equal weights
                     )
 
-                if dynamic_allocation:
+                for mechanism, weighting_source, enabled in DYNAMIC_VARIANTS:
+                    if not enabled:
+                        continue
+                    label = mechanism if weighting_source is None else f"{mechanism}/{weighting_source}"
                     print(f"\n{'='*60}")
-                    print(f"Running dynamic allocation (Weighted) experiments for {sc_method.upper()} | {model_name}")
+                    print(f"Running dynamic allocation ({label}) experiments for {sc_method.upper()} | {model_name}")
                     print(f"{'='*60}")
-                    run_and_save_dynamic_method(
+                    run_and_save_mechanism(
                         sc_method=sc_method,
                         model_name=model_name,
                         model_dir=paths['model_dir'],
                         method_data=method_data,
                         all_user_ids=all_user_ids,
                         dataset=dataset,
-                    )
-
-                if run_least_fair:
-                    print(f"\n{'='*60}")
-                    print(f"Running Least Fair allocation experiments for {sc_method.upper()} | {model_name}")
-                    print(f"{'='*60}")
-                    run_and_save_single_agent_method(
-                        sc_method=sc_method,
-                        model_name=model_name,
-                        model_dir=paths['model_dir'],
-                        method_data=method_data,
-                        all_user_ids=all_user_ids,
-                        dataset=dataset,
-                        mechanism="leastfair",
-                    )
-
-                if run_lottery:
-                    print(f"\n{'='*60}")
-                    print(f"Running Lottery allocation experiments for {sc_method.upper()} | {model_name}")
-                    print(f"{'='*60}")
-                    run_and_save_single_agent_method(
-                        sc_method=sc_method,
-                        model_name=model_name,
-                        model_dir=paths['model_dir'],
-                        method_data=method_data,
-                        all_user_ids=all_user_ids,
-                        dataset=dataset,
-                        mechanism="lottery",
+                        mechanism=mechanism,
+                        weighting_source=weighting_source,
+                        user_compatibility=user_compatibility,
                     )
 
         print("\n" + "="*60)

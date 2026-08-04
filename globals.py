@@ -12,7 +12,7 @@ datasets_for_recbole = [
 ]  # add datasets for recbole from above with "_sample" suffix - make sure to add them to recbole_general_recs/dataset
 
 models_for_recbole = [
-    "BPR", "NeuMF"
+    "BPR"
 ]  # add general recommendation models as baseline (e.g. BPR, SimpleX, ItemKNN, etc.)
 top_k_resample = 150
 top_k_eval = 10
@@ -26,22 +26,27 @@ boosting_methods = ["borda2baseline", "borda2cp_min_js", "borda2geo", "borda2mmr
 MMR_LAMBDA = 1  # 0 = pure relevance, 1 = pure diversity
 sc_models = models_for_recbole
 boosting = False
-run_static_sc = False  # whether to (re-)run the static equal-weight/boosted social choice methods at all
 
-# --- Dynamic allocation (SCRUF-D "Weighted" mechanism) ---
-dynamic_allocation = True
+# --- Dynamic allocation (SCRUF-D mechanisms) ---
 fairness_agents = ["cp_min_js", "geo", "mmr"]  # excludes "baseline": always-on, fixed-weight personalization agent
 dynamic_window = 30          # sliding window size (# users) for each agent's fairness-so-far (mi); expands until full, no separate burn-in
-dynamic_weight_floor = 0     # floor on raw (1-mi)*ci per agent; 0 = off by default, sweepable (see design discussion)
-use_ci = False                # compatibility term c_i: per-user nDCG-style agreement between an agent's own re-ranking and baseline (proxy for user profile); 1.0 (neutral) for every agent when False
+dynamic_weight_floor = 0     # floor on raw weighting-source score per agent; 0 = off by default, sweepable (see design discussion)
 dynamic_seed = 42            # fixed seed for shuffling user processing order (stream simulation) and lottery draws
-run_least_fair = True        # SCRUF-D "Least Fair" mechanism: single lowest-m_i agent active each round
-run_lottery = True         # SCRUF-D "Lottery" mechanism: single agent drawn ~ (1-m_i) each round
-_ci_suffix = "_ci" if use_ci else ""
+
+# Per-variant on/off switches -- each is independently re-runnable without touching the others.
+# "mi" = weighted/drawn from (1 - m_i) alone; "ci" = from c_i alone; "mi_ci" = from (1 - m_i) * c_i (SCRUF-D default).
+run_static_sc = False        # equal-weight run (borda/schulze as-is, no fairness reweighting)
+run_least_fair = False       # SCRUF-D "Least Fair": deterministic single lowest-m_i agent active each round
+run_weighted_mi = False      # SCRUF-D "Weighted", source="mi"
+run_weighted_ci = False      # SCRUF-D "Weighted", source="ci"
+run_weighted_mi_ci = True    # SCRUF-D "Weighted", source="mi_ci"
+run_lottery_mi = False       # SCRUF-D "Lottery", source="mi"
+run_lottery_ci = False       # SCRUF-D "Lottery", source="ci"
+run_lottery_mi_ci = False    # SCRUF-D "Lottery", source="mi_ci"
+
 dynamic_methods = [
-    # f"borda_weighted{_ci_suffix}", f"schulze_weighted{_ci_suffix}", 
-    "borda_weighted", "schulze_weighted",
-    "borda_leastfair", "schulze_leastfair",  # leastfair ignores compatibility, never gets "_ci"
-    # f"borda_lottery{_ci_suffix}", f"schulze_lottery{_ci_suffix}", 
-    "borda_lottery", "schulze_lottery"
+    "borda_leastfair", "borda_weighted_mi", "borda_weighted_ci", "borda_weighted_mi_ci",
+    "borda_lottery_mi", "borda_lottery_ci", "borda_lottery_mi_ci",
+    "schulze_leastfair", "schulze_weighted_mi", "schulze_weighted_ci", "schulze_weighted_mi_ci",
+    "schulze_lottery_mi", "schulze_lottery_ci", "schulze_lottery_mi_ci",
 ]
