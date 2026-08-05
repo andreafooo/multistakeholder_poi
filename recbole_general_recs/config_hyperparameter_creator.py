@@ -82,7 +82,7 @@ def hyperopt_tune(config_file_path, params_file, output_file):
     hp = HyperTuning(
         objective_function,
         algo=hyperopt_algo,
-        early_stop=10,
+        early_stop=20,
         max_evals=hyperopt_max_evals,
         params_file=params_file,
         fixed_config_file_list=[config_file_path, data_path_override_file],

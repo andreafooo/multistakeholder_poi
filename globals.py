@@ -73,5 +73,3 @@ run_weighted_mi_ci = False    # SCRUF-D "Weighted", source="mi_ci"
 run_lottery_mi = True       # SCRUF-D "Lottery", source="mi"
 run_lottery_ci = True       # SCRUF-D "Lottery", source="ci"
 run_lottery_mi_ci = True    # SCRUF-D "Lottery", source="mi_ci"
-
-
