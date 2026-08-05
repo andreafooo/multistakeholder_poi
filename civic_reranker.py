@@ -183,7 +183,7 @@ def main(available_datasets):
                     recommendations_df=base_resample,
                     top_k=top_k_resample,
                 )
-                save_top_k(out_df, basedir, "geo")
+                save_top_k(out_df, basedir, "civic")
 
             except Exception as e:
                 traceback.print_exception(type(e), e, e.__traceback__)

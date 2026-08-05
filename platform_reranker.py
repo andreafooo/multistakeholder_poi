@@ -801,7 +801,7 @@ def main(available_datasets):
                         delta=CP_DELTA,
                     )
 
-                save_top_k(reranked_df, basedir, "cp_min_js")
+                save_top_k(reranked_df, basedir, "platform")
 
         # except KeyError:
         #     print(

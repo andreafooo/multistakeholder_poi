@@ -47,17 +47,17 @@ def compute_and_save_user_compatibility(dataset):
     agents (see dynamic_allocation.py), from their own training check-in
     history -- independent of any specific model run or delivered list:
 
-    - "mmr":       mean behavioral ILD of the user's own profile items (same
+    - "provider":  mean behavioral ILD of the user's own profile items (same
                     item-item cosine similarity matrix as provider_reranker's
                     MMR agent). Higher = user's own taste is already diverse,
                     so pushing diversity for them is compatible.
-    - "geo":       1 - mean geographic ILD of the user's own profile items
+    - "civic":     1 - mean geographic ILD of the user's own profile items
                     (same haversine approach as civic_reranker's geo agent).
-                    The geo agent's push is to minimize distance travelled, so
+                    The civic agent's push is to minimize distance travelled, so
                     a user whose own profile is already geographically compact
                     is compatible; a user who already ranges widely is not.
-    - "cp_min_js": 1 - mean profile popularity. Users whose profile already
-                    skews niche/long-tail are compatible with cp_min_js's
+    - "platform":  1 - mean profile popularity. Users whose profile already
+                    skews niche/long-tail are compatible with platform's
                     anti-popularity-bias calibration; mainstream-only users
                     are not.
 
@@ -86,15 +86,15 @@ def compute_and_save_user_compatibility(dataset):
     all_users = set(ild_raw) | set(geo_ild_raw) | set(popularity_raw)
     compatibility = {
         user_id: {
-            "mmr": ild_norm.get(user_id, 0.0),
-            "geo": 1.0 - geo_ild_norm.get(user_id, 0.0),
-            "cp_min_js": 1.0 - popularity_norm.get(user_id, 0.0),
+            "provider": ild_norm.get(user_id, 0.0),
+            "civic": 1.0 - geo_ild_norm.get(user_id, 0.0),
+            "platform": 1.0 - popularity_norm.get(user_id, 0.0),
         }
         for user_id in all_users
     }
 
-    assert set(fairness_agents) <= {"mmr", "geo", "cp_min_js"}, (
-        f"compute_user_compatibility only knows how to score {{'mmr', 'geo', 'cp_min_js'}}, "
+    assert set(fairness_agents) <= {"provider", "civic", "platform"}, (
+        f"compute_user_compatibility only knows how to score {{'provider', 'civic', 'platform'}}, "
         f"but globals.fairness_agents is {fairness_agents}"
     )
 

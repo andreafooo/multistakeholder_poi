@@ -118,7 +118,7 @@ def get_user_recommendations(data, user_id, top_k_resample=top_k_resample, verif
 
 def run_social_choice_for_user(user_id, method_recommendations, all_candidates, n_seats=top_k_eval, method="schulze", verify=False, method_weights=None):
     """
-    Run a specific social choice aggregation for a single user across multiple methods (baseline, cp_min_js).
+    Run a specific social choice aggregation for a single user across multiple methods (baseline, platform, civic, provider).
     """
     ballots = []
     for method_name, rec_list in method_recommendations.items():
@@ -168,7 +168,7 @@ def run_and_save_boosted_method(sc_method, model_name, model_dir, method_data, a
     """
     Run social choice with one method boosted (weight=boost_factor, others=1.0).
     If boost_method is None, runs the baseline (all equal weights).
-    Saves to e.g. 'schulze2baseline/' or 'schulze2cp_min_js/'.
+    Saves to e.g. 'schulze2baseline/' or 'schulze2platform/'.
     """
     method_names = list(methods_to_aggregate)
 
@@ -179,7 +179,7 @@ def run_and_save_boosted_method(sc_method, model_name, model_dir, method_data, a
         method_weights = {m: (boost_factor if m == boost_method else 1.0) for m in method_names}
         folder_suffix = "2"+boost_method
 
-    # e.g. "schulze2baseline", "schulze2cp_min_js"
+    # e.g. "schulze2baseline", "schulze2platform"
     sc_subfolder = f"{sc_method}{folder_suffix}"
     results = {}
     user_list = list(all_user_ids)
@@ -218,7 +218,7 @@ def run_and_save_boosted_method(sc_method, model_name, model_dir, method_data, a
     output_dir = get_sc_output_dir(
         dataset=dataset,
         model_dir=model_dir,
-        sc_method=sc_subfolder          # <-- "schulze2baseline", "schulze2cp_min_js", etc.
+        sc_method=sc_subfolder          # <-- "schulze2baseline", "schulze2platform", etc.
     )
     output_file = os.path.join(output_dir, "top_k_recommendations.json")
 
@@ -455,9 +455,9 @@ def get_paths_for_sc_input(dataset, recommendation_dirpart=recommendation_dirpar
             model_name = element["model"]
             sc_recs[model_name] = {
                 "baseline": model_dirs[model_name]["baseline"],
-                "cp_min_js": model_dirs[model_name]["cp_min_js"],
-                "geo": model_dirs[model_name]["geo"],
-                "mmr": model_dirs[model_name]["mmr"],
+                "platform": model_dirs[model_name]["platform"],
+                "civic": model_dirs[model_name]["civic"],
+                "provider": model_dirs[model_name]["provider"],
                 "model_dir": element['directory']
             }
 
