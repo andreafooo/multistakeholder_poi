@@ -1,3 +1,4 @@
+import ast
 import copy
 import os
 import sys
@@ -116,6 +117,16 @@ for dataset in datasets_for_recbole:
             best_params = hyperopt_tune(
                 config_file_path, params_file, result_file_path
             )
+            # RecBole's HyperTuning encodes list-valued choices (e.g. mlp_hidden_size)
+            # as their string repr, since hyperopt's hp.choice requires hashable
+            # options and a raw list isn't hashable. Decode them back before writing,
+            # otherwise NeuMF later fails concatenating a list with this raw string.
+            for key, value in best_params.items():
+                if isinstance(value, str):
+                    try:
+                        best_params[key] = ast.literal_eval(value)
+                    except (ValueError, SyntaxError):
+                        pass
             model_config.update(best_params)
             with open(config_file_path, "w") as file:
                 yaml.dump(model_config, file)
