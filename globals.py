@@ -27,6 +27,12 @@ MMR_LAMBDA = 1  # 0 = pure relevance, 1 = pure diversity
 sc_models = models_for_recbole
 boosting = False
 
+# --- Platform / Calibration Re-Ranker ---
+gridsearch = False  # set to True to run a fresh delta grid search for new datasets
+use_saved_gridsearch_deltas = False  # set to True to load per-group deltas from a previous gridsearch run (cp/gridsearch_best_deltas.json)
+CP_DELTA = 1  # fixed delta used for all users when neither gridsearch nor use_saved_gridsearch_deltas is set
+save_upd = False
+
 # --- Dynamic allocation (SCRUF-D mechanisms) ---
 fairness_agents = ["cp_min_js", "geo", "mmr"]  # excludes "baseline": always-on, fixed-weight personalization agent
 dynamic_window = 30          # sliding window size (# users) for each agent's fairness-so-far (mi); expands until full, no separate burn-in

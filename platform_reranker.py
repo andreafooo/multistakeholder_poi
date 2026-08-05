@@ -9,6 +9,10 @@ from globals import (
     top_k_eval,
     valid_popularity,
     recommendation_dirpart,
+    gridsearch,
+    use_saved_gridsearch_deltas,
+    save_upd,
+    CP_DELTA
 )
 import os
 import random
@@ -17,14 +21,6 @@ from evaluation_metrics import *
 from tqdm import tqdm
 
 pd.options.mode.copy_on_write = True
-
-
-# Constants
-gridsearch = False  # set to true for new datasets
-save_upd = False
-
-######################################################
-
 
 # Define the datasets you want to process
 def dataset_metadata(dataset, recommendation_dirpart=recommendation_dirpart):
@@ -748,10 +744,12 @@ def main(available_datasets):
                         upts,
                         basedir,
                     )
-                else:
+                elif use_saved_gridsearch_deltas:
                     cp_gridsearch_best_deltas = json.load(
                         open(f"{basedir}/cp/gridsearch_best_deltas.json")
                     )
+                else:
+                    cp_gridsearch_best_deltas = None
 
                 print(f"Best deltas: {cp_gridsearch_best_deltas}")
 
@@ -775,24 +773,34 @@ def main(available_datasets):
                 # reranked_df = pd.concat(cp_dfs)
                 # save_top_k(reranked_df, basedir, "cp")
 
-                cp_min_dfs = []
-                for group in tqdm(user_groups.keys(), desc="Processing CP min JS groups", leave=False):
-                    if group != "all":
-                        base_resample_group = base_resample.loc[
-                            base_resample["user_id:token"].isin(user_groups[group])
-                        ]
-                        user_profiles_group = user_profiles.loc[
-                            user_profiles["user_id:token"].isin(user_groups[group])
-                        ]
-                        reranked_df_group = rerank_cp_all_users(
-                            base_resample_group,
-                            user_profiles_group,
-                            top_k_eval,
-                            delta=cp_gridsearch_best_deltas["js"][group],
-                        )
-                        cp_min_dfs.append(reranked_df_group)
+                if cp_gridsearch_best_deltas is not None:
+                    cp_min_dfs = []
+                    for group in tqdm(user_groups.keys(), desc="Processing CP min JS groups", leave=False):
+                        if group != "all":
+                            base_resample_group = base_resample.loc[
+                                base_resample["user_id:token"].isin(user_groups[group])
+                            ]
+                            user_profiles_group = user_profiles.loc[
+                                user_profiles["user_id:token"].isin(user_groups[group])
+                            ]
+                            reranked_df_group = rerank_cp_all_users(
+                                base_resample_group,
+                                user_profiles_group,
+                                top_k_resample,
+                                delta=cp_gridsearch_best_deltas["js"][group],
+                            )
+                            cp_min_dfs.append(reranked_df_group)
 
-                reranked_df = pd.concat(cp_min_dfs)
+                    reranked_df = pd.concat(cp_min_dfs)
+                else:
+                    # Shortcut: single fixed delta for all users, no per-group tuning.
+                    reranked_df = rerank_cp_all_users(
+                        base_resample,
+                        user_profiles,
+                        top_k_resample,
+                        delta=CP_DELTA,
+                    )
+
                 save_top_k(reranked_df, basedir, "cp_min_js")
 
         # except KeyError:
