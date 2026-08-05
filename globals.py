@@ -13,7 +13,7 @@ available_datasets = [
     "foursquaretky", "yelp"
 ]  # choose betweeen "yelp" and "foursquaretky", and make sure to add the datasets to your BASE_DIR
 
-
+ 
 # -----------------------------------------
 # RecBole Config for baseline creation
 # -----------------------------------------
