@@ -14,4 +14,5 @@ set -euo pipefail
 cd "$SLURM_SUBMIT_DIR"
 source venv/bin/activate
 
+python3 recbole_general_recs/config_hyperparameter_creator.py
 python3 recbole_general_recs/recbole_full_casestudy.py
