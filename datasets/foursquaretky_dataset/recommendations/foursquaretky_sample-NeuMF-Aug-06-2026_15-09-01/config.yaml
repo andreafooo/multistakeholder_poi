@@ -6,7 +6,7 @@ benchmark_filename:
 - train
 - valid
 - test
-dataset: yelp_sample
+dataset: foursquaretky_sample
 dropout_prob: 0.1
 epochs: 200
 eval_args:
