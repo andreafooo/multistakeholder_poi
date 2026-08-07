@@ -20,12 +20,16 @@ if "kmeans_pytorch" not in sys.modules:
 
 # LightGCN's get_norm_adj_mat() calls dok_matrix._update(), a private scipy
 # alias for dict.update() that newer scipy releases (the sparse-array refactor,
-# ~1.12+) dropped while keeping the public update() method. Patch it back in
-# instead of pinning scipy older, since recbole 1.2.0 is the one relying on it.
+# ~1.12+) removed. scipy's own public update() is also deliberately disabled
+# ("Direct update to DOK sparse format is not allowed"), so it can't be reused
+# either. DOK storage now lives in the private _dict attribute instead of the
+# matrix itself, so bulk-loading it via _dict.update() reproduces the old
+# _update() behavior. Patch it back in rather than pinning scipy older, since
+# recbole 1.2.0 is the one relying on this internal.
 from scipy.sparse import dok_matrix
 
 if not hasattr(dok_matrix, "_update"):
-    dok_matrix._update = dok_matrix.update
+    dok_matrix._update = lambda self, data_dict: self._dict.update(data_dict)
 
 from recbole.trainer import HyperTuning
 from recbole.quick_start import objective_function
