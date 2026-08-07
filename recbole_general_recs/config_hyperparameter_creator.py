@@ -76,6 +76,7 @@ with open(data_path_override_file, "w") as file:
 model_hyperparams_files = {
     "BPR": os.path.join(SCRIPT_DIR, "hyper.test"),
     "NeuMF": os.path.join(SCRIPT_DIR, "hyper_neumf.test"),
+    "LightGCN": os.path.join(SCRIPT_DIR, "hyper_lightgcn.test")
 }
 
 

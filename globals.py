@@ -21,7 +21,7 @@ datasets_for_recbole = [
  "foursquaretky_sample", "yelp_sample"
 ]  # add datasets for recbole from above with "_sample" suffix - make sure to add them to recbole_general_recs/dataset
 models_for_recbole = [
-    "BPR", "NeuMF"
+    "LightGCN"
 ]  # add general recommendation models as baseline (e.g. BPR, SimpleX, ItemKNN, etc.)
 
 # -----------------------------------------
