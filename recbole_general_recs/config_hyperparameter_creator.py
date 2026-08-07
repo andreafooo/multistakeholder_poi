@@ -18,6 +18,15 @@ if "kmeans_pytorch" not in sys.modules:
         _kmeans_pytorch_stub.kmeans = None
         sys.modules["kmeans_pytorch"] = _kmeans_pytorch_stub
 
+# LightGCN's get_norm_adj_mat() calls dok_matrix._update(), a private scipy
+# alias for dict.update() that newer scipy releases (the sparse-array refactor,
+# ~1.12+) dropped while keeping the public update() method. Patch it back in
+# instead of pinning scipy older, since recbole 1.2.0 is the one relying on it.
+from scipy.sparse import dok_matrix
+
+if not hasattr(dok_matrix, "_update"):
+    dok_matrix._update = dok_matrix.update
+
 from recbole.trainer import HyperTuning
 from recbole.quick_start import objective_function
 
