@@ -1,0 +1,15 @@
+{
+  "summary": {
+    "dataset": "foursquaretky",
+    "profile": "foot",
+    "total_pois": 2804,
+    "request_failures": 0,
+    "far_snaps": 0,
+    "far_snap_threshold_m": 150,
+    "ok_pois": 2804,
+    "ok_rate": 1.0,
+    "mean_snap_distance_m": 9.57,
+    "max_snap_distance_m": 143.05
+  },
+  "flagged": []
+}

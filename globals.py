@@ -5,12 +5,13 @@ import os
 # -----------------------------------------
 PROJECT_BASE = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.join(PROJECT_BASE, "datasets") 
-top_k_resample = 150
+top_k_resample = int(os.environ.get("TOP_K_RESAMPLE", 50))  # env override lets sweep_top_k_resample.py
+                                                               # vary this per subprocess without editing this file
 top_k_eval = 10
 valid_popularity = "item_pop"
 recommendation_dirpart = "recommendations"
 available_datasets = [
-    "foursquaretky", "yelp"
+    "foursquaretky"
 ]  # choose betweeen "yelp" and "foursquaretky", and make sure to add the datasets to your BASE_DIR
 
  
@@ -23,6 +24,27 @@ datasets_for_recbole = [
 models_for_recbole = [
     "LightGCN"
 ]  # add general recommendation models as baseline (e.g. BPR, SimpleX, ItemKNN, etc.)
+
+# -----------------------------------------
+# OSRM (real travel distance for civic reranker)
+# -----------------------------------------
+OSRM_HOST = "localhost"
+OSRM_PORTS = {
+    "foursquaretky": {"car": 5000, "foot": 5001},
+    "yelp": {"car": 5002, "foot": 5003},
+}  # see osrm/docker-compose.yml -- run osrm/prepare_data.py once per dataset first
+OSRM_DEFAULT_PROFILE = "foot"  # civic/local access is typically pedestrian-scale
+OSRM_REQUEST_TIMEOUT = 5  # seconds -- for single-pair /route and /nearest calls
+OSRM_TABLE_REQUEST_TIMEOUT = 30  # seconds -- /table cost grows ~quadratically with point count;
+                                  # a 100-point chunk took ~4.7s against the foursquaretky/foot graph,
+                                  # so this needs real headroom above OSRM_REQUEST_TIMEOUT
+OSRM_MAX_SNAP_DISTANCE_M = 150  # beyond this, a point is treated as unroutable -> haversine fallback
+OSRM_TABLE_MAX_COORDS = 200  # chunk /table requests above this many points per call -- must stay
+                              # <= osrm-routed's --max-matrix-size (see osrm/docker-compose.yml);
+                              # kept below that 250 cap so a full top_k_resample=150 group always
+                              # fits in a single /table call (chunking still creates a cross-chunk
+                              # gap resolved via slow per-pair fallback -- avoid needing it at all)
+OSRM_CACHE_DIR = os.path.join(PROJECT_BASE, "osrm", "cache")
 
 # -----------------------------------------
 # Provider / MMR Re-Ranker
@@ -46,6 +68,8 @@ fairness_agents = ["platform", "civic", "provider"]  # excludes "baseline": alwa
 sc_models = models_for_recbole
 boosting = False # Naive boosting experiment from CIKM where 1 agents counts double
 methods_to_aggregate = ["baseline", "platform", "civic", "provider"]
+sc_methods = ["borda", "schulze"]
+
 full_eval_methods = ["baseline", "platform", "provider", "civic", "borda", "schulze"]
 boosting_methods = ["borda2baseline", "borda2platform", "borda2civic", "borda2provider",
                     "schulze2baseline", "schulze2platform", "schulze2civic", "schulze2provider"]
@@ -57,7 +81,7 @@ dynamic_methods = [
     "borda_leastfair", "borda_weighted_mi", "borda_weighted_ci", "borda_weighted_mi_ci",
     "borda_lottery_mi", "borda_lottery_ci", "borda_lottery_mi_ci",
     "schulze_leastfair", "schulze_weighted_mi", "schulze_weighted_ci", "schulze_weighted_mi_ci",
-    "schulze_lottery_mi", "schulze_lottery_ci", "schulze_lottery_mi_ci",
+    "schulze_lottery_mi", "schulze_lottery_ci", "schulze_lottery_mi_ci"
 ]
 dynamic_window = 30          # sliding window size (# users) for each agent's fairness-so-far (mi); expands until full, no separate burn-in
 dynamic_weight_floor = 0     # floor on raw weighting-source score per agent; 0 = off by default, sweepable (see design discussion)

@@ -11,14 +11,17 @@ from platform_reranker import (
 )
 from globals import (
     BASE_DIR,
+    OSRM_DEFAULT_PROFILE,
     available_datasets,
     top_k_eval,
     top_k_resample,
 )
+from osrm_client import OSRMClient
 
 
 class GeoReranker:
-    def __init__(self, coordinates_df, min_distance_km: float = 0.01):
+    def __init__(self, coordinates_df, min_distance_km: float = 0.01, dataset: str = None,
+                 osrm_profile: str = None):
         """
         coordinates_df  : pd.DataFrame
             Must contain columns: item_id:token, lat:float, lon:float
@@ -26,6 +29,12 @@ class GeoReranker:
             Minimum distance (km) a candidate must be from ALL already-selected
             items. Candidates closer than this threshold are skipped to avoid
             near-duplicate recommendations. Default: 10 meters.
+        dataset         : str
+            Dataset name, used to look up the right OSRM instance in
+            globals.OSRM_PORTS (see osrm/). If None, falls back to pure
+            haversine distance (e.g. useful in tests without OSRM running).
+        osrm_profile    : str
+            "car" or "foot" (defaults to globals.OSRM_DEFAULT_PROFILE).
         """
         self.min_distance_km = min_distance_km
         self.coords = dict(
@@ -34,6 +43,12 @@ class GeoReranker:
                 zip(coordinates_df["lat:float"], coordinates_df["lon:float"]),
             )
         )
+        self.osrm_client = (
+            OSRMClient(dataset, profile=osrm_profile or OSRM_DEFAULT_PROFILE)
+            if dataset is not None
+            else None
+        )
+        self._pair_cache = {}
 
     @staticmethod
     def _haversine(lat1, lon1, lat2, lon2):
@@ -52,14 +67,43 @@ class GeoReranker:
 
     def _distance(self, item_a, item_b):
         """
-        Haversine distance between two item string IDs.
+        Real travel distance (OSRM) between two item string IDs, falling back
+        to haversine if no OSRM client is configured, OSRM is unreachable, or
+        a pair has no route / fails to snap to the road network.
         Returns inf if either item has no coordinates (cold-start safe).
         """
+        if item_a == item_b:
+            return 0.0
         coords_a = self.coords.get(item_a)
         coords_b = self.coords.get(item_b)
         if coords_a is None or coords_b is None:
             return float("inf")
-        return self._haversine(coords_a[0], coords_a[1], coords_b[0], coords_b[1])
+
+        if self.osrm_client is None:
+            return self._haversine(coords_a[0], coords_a[1], coords_b[0], coords_b[1])
+
+        cache_key = (item_a, item_b)
+        if cache_key in self._pair_cache:
+            return self._pair_cache[cache_key]
+
+        dist = self.osrm_client.distance_km(item_a, coords_a, item_b, coords_b, self._haversine)
+        self._pair_cache[cache_key] = dist
+        self._pair_cache[(item_b, item_a)] = dist
+        return dist
+
+    def _prewarm(self, candidates):
+        """Batch-resolve all pairwise distances for `candidates` via a single
+        OSRM Table request, so _geo_select's repeated _distance() calls hit
+        the in-memory cache instead of one HTTP round-trip per pair."""
+        if self.osrm_client is None:
+            return
+        items_with_coords = [
+            (c, self.coords[c][0], self.coords[c][1]) for c in candidates if c in self.coords
+        ]
+        if len(items_with_coords) < 2:
+            return
+        table = self.osrm_client.table_km(items_with_coords, self._haversine)
+        self._pair_cache.update(table)
 
     def _geo_select(self, candidates, relevance_scores, top_k):
         """
@@ -72,6 +116,8 @@ class GeoReranker:
         3. Candidates that violate the minimum distance are skipped entirely.
         4. Repeat until top_k items are selected or candidates are exhausted.
         """
+        self._prewarm(candidates)
+
         selected = []
         remaining = set(candidates)
 
@@ -159,7 +205,9 @@ def main(available_datasets):
     for dataset in tqdm(available_datasets, desc="Processing datasets"):
         data = dataset_metadata(dataset)
         coords_df = load_coordinates(dataset)
-        reranker = GeoReranker(coords_df, 0.01)
+        reranker = GeoReranker(coords_df, 0.01, dataset=dataset)
+        if reranker.osrm_client is not None:
+            reranker.osrm_client.wait_until_ready()
 
         for result in tqdm(
             data, desc=f"Processing models for {dataset}", leave=False
@@ -187,6 +235,9 @@ def main(available_datasets):
 
             except Exception as e:
                 traceback.print_exception(type(e), e, e.__traceback__)
+
+        if reranker.osrm_client is not None:
+            reranker.osrm_client.save_cache()
 
 
 if __name__ == "__main__":

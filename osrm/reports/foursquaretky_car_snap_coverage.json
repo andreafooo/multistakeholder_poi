@@ -1,0 +1,135 @@
+{
+  "summary": {
+    "dataset": "foursquaretky",
+    "profile": "car",
+    "total_pois": 2804,
+    "request_failures": 0,
+    "far_snaps": 17,
+    "far_snap_threshold_m": 150,
+    "ok_pois": 2787,
+    "ok_rate": 0.9939,
+    "mean_snap_distance_m": 24.6,
+    "max_snap_distance_m": 259.98
+  },
+  "flagged": [
+    {
+      "item_id": "1294_x",
+      "lat": 35.63005853,
+      "lon": 139.6223259,
+      "status": "far",
+      "snap_distance_m": 155.610589
+    },
+    {
+      "item_id": "2618_x",
+      "lat": 35.68525669,
+      "lon": 139.7094655,
+      "status": "far",
+      "snap_distance_m": 206.713089
+    },
+    {
+      "item_id": "2116_x",
+      "lat": 35.67070245,
+      "lon": 139.6966338,
+      "status": "far",
+      "snap_distance_m": 204.018954
+    },
+    {
+      "item_id": "1529_x",
+      "lat": 35.62325637,
+      "lon": 139.571085,
+      "status": "far",
+      "snap_distance_m": 152.747136
+    },
+    {
+      "item_id": "1155_x",
+      "lat": 35.62575056,
+      "lon": 139.6617758,
+      "status": "far",
+      "snap_distance_m": 177.313245
+    },
+    {
+      "item_id": "678_x",
+      "lat": 35.63281411,
+      "lon": 139.8803115,
+      "status": "far",
+      "snap_distance_m": 221.41238
+    },
+    {
+      "item_id": "2737_x",
+      "lat": 35.66029497,
+      "lon": 139.7634745,
+      "status": "far",
+      "snap_distance_m": 226.236479
+    },
+    {
+      "item_id": "2495_x",
+      "lat": 35.71188321,
+      "lon": 139.7703838,
+      "status": "far",
+      "snap_distance_m": 157.906163
+    },
+    {
+      "item_id": "2252_x",
+      "lat": 35.63203802,
+      "lon": 139.8808372,
+      "status": "far",
+      "snap_distance_m": 202.488512
+    },
+    {
+      "item_id": "1510_x",
+      "lat": 35.68274693,
+      "lon": 139.7556961,
+      "status": "far",
+      "snap_distance_m": 201.910577
+    },
+    {
+      "item_id": "1818_x",
+      "lat": 35.59140061,
+      "lon": 139.7428429,
+      "status": "far",
+      "snap_distance_m": 259.978113
+    },
+    {
+      "item_id": "2660_x",
+      "lat": 35.60833319,
+      "lon": 139.5609999,
+      "status": "far",
+      "snap_distance_m": 185.779206
+    },
+    {
+      "item_id": "2541_x",
+      "lat": 35.63100904,
+      "lon": 139.8820791,
+      "status": "far",
+      "snap_distance_m": 154.93875
+    },
+    {
+      "item_id": "2708_x",
+      "lat": 35.63171538,
+      "lon": 139.8809311,
+      "status": "far",
+      "snap_distance_m": 199.856931
+    },
+    {
+      "item_id": "2633_x",
+      "lat": 35.63413954,
+      "lon": 139.8795176,
+      "status": "far",
+      "snap_distance_m": 202.164079
+    },
+    {
+      "item_id": "1374_x",
+      "lat": 35.7665537,
+      "lon": 139.6300997,
+      "status": "far",
+      "snap_distance_m": 229.415518
+    },
+    {
+      "item_id": "2251_x",
+      "lat": 35.62359802,
+      "lon": 139.7747304,
+      "status": "far",
+      "snap_distance_m": 170.856714
+    }
+  ]
+}
