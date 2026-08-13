@@ -246,6 +246,102 @@ class OSRMClient:
                 results[(item_b, item_a)] = dist_km
         return results
 
+    def table_block_km(self, sources, destinations, haversine_fn):
+        """
+        Rectangular block of the pairwise distance matrix between `sources`
+        and `destinations` (each a list of (item_id, lat, lon)), via OSRM's
+        /table sources+destinations params -- one request computes
+        len(sources) x len(destinations) cells instead of the
+        (len(sources)+len(destinations))^2 a flat table_km call over their
+        union would do. Used by osrm/precompute_distance_matrix.py to tile a
+        full catalog-wide distance matrix in the fewest requests. Skips the
+        network call if every pair is already cached (resumable).
+        len(sources) + len(destinations) must stay <= OSRM_TABLE_MAX_COORDS
+        (== osrm-routed's --max-table-size, see osrm/docker-compose.yml).
+        """
+        all_cached = True
+        cached = {}
+        for item_a, _, _ in sources:
+            for item_b, _, _ in destinations:
+                if item_a == item_b:
+                    continue
+                key = self._pair_key(item_a, item_b)
+                if key not in self._cache:
+                    all_cached = False
+                    break
+                dist_km = self._cache[key]
+                cached[(item_a, item_b)] = dist_km
+                cached[(item_b, item_a)] = dist_km
+            if not all_cached:
+                break
+        if all_cached:
+            return cached
+        if self.unavailable:
+            return self._haversine_block(sources, destinations, haversine_fn)
+
+        coords = sources + destinations
+        n_sources = len(sources)
+        coords_param = ";".join(f"{lon},{lat}" for _, lat, lon in coords)
+        sources_param = ";".join(str(i) for i in range(n_sources))
+        destinations_param = ";".join(str(i) for i in range(n_sources, len(coords)))
+        url = (
+            f"{self.base_url}/table/v1/{self.profile}/{coords_param}"
+            f"?sources={sources_param}&destinations={destinations_param}&annotations=distance"
+        )
+        try:
+            resp = self.session.get(url, timeout=self.table_timeout)
+            resp.raise_for_status()
+            data = resp.json()
+            if data.get("code") != "Ok":
+                raise ValueError(data.get("code"))
+        except requests.exceptions.RequestException:
+            self._mark_unavailable()
+            return self._haversine_block(sources, destinations, haversine_fn)
+        except ValueError:
+            return self._haversine_block(sources, destinations, haversine_fn)
+
+        distances = data["distances"]
+        src_meta = data.get("sources") or []
+        dst_meta = data.get("destinations") or []
+        src_snapped = (
+            [(s.get("distance") or 0) <= self.max_snap_distance_m for s in src_meta]
+            if src_meta
+            else [True] * n_sources
+        )
+        dst_snapped = (
+            [(d.get("distance") or 0) <= self.max_snap_distance_m for d in dst_meta]
+            if dst_meta
+            else [True] * len(destinations)
+        )
+
+        results = {}
+        for i, (item_a, lat_a, lon_a) in enumerate(sources):
+            for j, (item_b, lat_b, lon_b) in enumerate(destinations):
+                if item_a == item_b:
+                    continue
+                d = distances[i][j]
+                if d is not None and src_snapped[i] and dst_snapped[j]:
+                    dist_km = d / 1000.0
+                else:
+                    dist_km = haversine_fn(lat_a, lon_a, lat_b, lon_b)
+                self._cache[self._pair_key(item_a, item_b)] = dist_km
+                self._dirty = True
+                results[(item_a, item_b)] = dist_km
+                results[(item_b, item_a)] = dist_km
+        return results
+
+    @staticmethod
+    def _haversine_block(sources, destinations, haversine_fn):
+        results = {}
+        for item_a, lat_a, lon_a in sources:
+            for item_b, lat_b, lon_b in destinations:
+                if item_a == item_b:
+                    continue
+                d = haversine_fn(lat_a, lon_a, lat_b, lon_b)
+                results[(item_a, item_b)] = d
+                results[(item_b, item_a)] = d
+        return results
+
     @staticmethod
     def _haversine_matrix(items_with_coords, haversine_fn):
         results = {}

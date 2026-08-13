@@ -285,6 +285,35 @@ def geographic_ild_per_user(df, item_coords, warn_threshold_m=1.0):
     return scores
 
 
+def geographic_ild_per_user_network(df, item_coords, osrm_client):
+    """
+    Same as geographic_ild_per_user, but real travel distance (OSRM) instead
+    of haversine. One /table request per user (all-pairs in a single round
+    trip, via osrm_client.table_km -- the same batching civic_reranker.py's
+    GeoReranker._prewarm uses) rather than a /route call per pair: a user's
+    top-k is well under OSRM_TABLE_MAX_COORDS, so this is one HTTP call
+    instead of up to C(k,2), and the disk cache means repeat item pairs
+    across users/conditions cost nothing after the first lookup.
+    """
+    scores = {}
+    for user_id, group in df.groupby("user_id:token"):
+        items = group["item_id:token"].tolist()
+        items_with_coords = [(i, *item_coords[i]) for i in items if i in item_coords]
+
+        if len(items_with_coords) < 2:
+            scores[user_id] = 0.0
+            continue
+
+        table = osrm_client.table_km(items_with_coords, haversine)
+        distances = [
+            table[(items_with_coords[a][0], items_with_coords[b][0])]
+            for a in range(len(items_with_coords))
+            for b in range(a + 1, len(items_with_coords))
+        ]
+        scores[user_id] = float(np.mean(distances))
+    return scores
+
+
 def geo_distance_std_per_user(df, item_coords):
     """
     Computes the standard deviation of all-pairs haversine distances (km)
@@ -346,6 +375,29 @@ def distance_traveled_per_user(df, item_coords):
         scores[user_id] = float(sum(
             haversine(*coords[k], *coords[k + 1])
             for k in range(len(coords) - 1)
+        ))
+    return scores
+
+
+def distance_traveled_per_user_network(df, item_coords, osrm_client):
+    """
+    Same as distance_traveled_per_user, but real travel distance (OSRM).
+    Uses table_km per user like geographic_ild_per_user_network -- if that
+    was already called for the same df, this is a pure cache hit (no
+    network calls), since table_km warms every pair in a user's list, not
+    just the consecutive ones this function reads back out.
+    """
+    scores = {}
+    for user_id, group in df.groupby("user_id:token"):
+        items = group["item_id:token"].tolist()
+        items_with_coords = [(i, *item_coords[i]) for i in items if i in item_coords]
+        if len(items_with_coords) < 2:
+            scores[user_id] = 0.0
+            continue
+        table = osrm_client.table_km(items_with_coords, haversine)
+        scores[user_id] = float(sum(
+            table[(items_with_coords[k][0], items_with_coords[k + 1][0])]
+            for k in range(len(items_with_coords) - 1)
         ))
     return scores
 
