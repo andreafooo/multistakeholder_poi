@@ -49,7 +49,7 @@ Links to the original datasets used in this study:
 * [yelp_dataset](https://www.yelp.com/dataset)
 * [foursquaretky_dataset](https://www.kaggle.com/datasets/chetanism/foursquare-nyc-and-tokyo-checkin-dataset)
 
-5. Data Sampling & Preprocessing: Add the desired datasets to `globals.py` and call `data_sampling.py`from the root directory. The samples include three user groups; 1/3 that visited the most popular POIs, 1/3 around the popularity median and 1/3 that visited the least popular POIs (default n=1500 users). The train/validation/test (65/15/20) splits are performed based on a user-based temporal split & duplicate check-ins are transformed into a check-in count. The samples are processed to fit the layout for RecBole and CAPRI and saved into the respective subfolders in the `BASE_DIR`. 
+5. Data Sampling & Preprocessing: Add the desired datasets to `globals.py` and call `preprocessing/data_sampling.py` from the root directory. The samples include three user groups; 1/3 that visited the most popular POIs, 1/3 around the popularity median and 1/3 that visited the least popular POIs (default n=1500 users). The train/validation/test (65/15/20) splits are performed based on a user-based temporal split & duplicate check-ins are transformed into a check-in count. The samples are processed to fit the layout for RecBole and CAPRI and saved into the respective subfolders in the `BASE_DIR`. 
 
 ### Generate Recommendations (Baseline)
 Generate Recommendations using [RecBole](https://github.com/RUCAIBox/RecBole) for general recommender models. RecBole works as a pip package inside this project. NOTE: main study uses numpy==2.3.5; if you need to run your own RecBole recommendations, an older numpy version (e.g., 1.26.4) is needed.
