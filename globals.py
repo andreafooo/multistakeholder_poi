@@ -11,7 +11,7 @@ top_k_eval = 10
 valid_popularity = "item_pop"
 recommendation_dirpart = "recommendations"
 available_datasets = [
-    "foursquaretky"
+    "foursquaretky", "yelp"
 ]  # choose betweeen "yelp" and "foursquaretky", and make sure to add the datasets to your BASE_DIR
 
  
@@ -22,7 +22,7 @@ datasets_for_recbole = [
  "foursquaretky_sample", "yelp_sample"
 ]  # add datasets for recbole from above with "_sample" suffix - make sure to add them to recbole_general_recs/dataset
 models_for_recbole = [
-    "LightGCN"
+    "BPR"
 ]  # add general recommendation models as baseline (e.g. BPR, SimpleX, ItemKNN, etc.)
 
 # -----------------------------------------
@@ -70,9 +70,27 @@ boosting = False # Naive boosting experiment from CIKM where 1 agents counts dou
 methods_to_aggregate = ["baseline", "platform", "civic", "provider"]
 sc_methods = ["borda", "schulze"]
 
-full_eval_methods = ["baseline", "platform", "provider", "civic", "borda", "schulze"]
+# full_eval_methods = ["baseline", "platform", "provider", "civic", "borda", "schulze", "rrf"]
+full_eval_methods = ["baseline", "platform", "provider", "civic", "borda", "schulze", "rrf", "mo_greedy", "mo_greedy_pctrank"]
 boosting_methods = ["borda2baseline", "borda2platform", "borda2civic", "borda2provider",
                     "schulze2baseline", "schulze2platform", "schulze2civic", "schulze2provider"]
+
+# -----------------------------------------
+# Alternatives to social choice (static, equal-weight -- no dynamic reweighting)
+# -----------------------------------------
+# Reciprocal Rank Fusion (rrf_aggregation.py, via the ranx package): fuses the 4
+# already-reranked stakeholder lists purely by rank position, no cardinal scores needed.
+rrf_k = 60  # RRF's k constant (Cormack, Clarke & Buttcher 2009 default)
+
+# Multi-objective greedy re-ranker (multi_objective_reranker.py): one greedy loop over the
+# raw baseline candidate pool, combining relevance + behavioral diversity + geo compactness +
+# popularity-tier calibration into a single weighted-sum criterion per step. Equal weights by
+# default -- a "true" unweighted combination of all 4 objectives, no single one boosted.
+# Run twice per model, once per normalization scheme (see MultiObjectiveGreedyReranker
+# docstring): "mo_greedy" (each term's own fixed [0,1] bound) and "mo_greedy_pctrank"
+# (percentile-rank normalized across the remaining candidates at each step, same
+# pandas .rank(pct=True) approach compute_user_compatibility.py uses across users).
+MO_GREEDY_WEIGHTS = {"relevance": 1.0, "diversity": 1.0, "geo": 1.0, "calibration": 1.0}
 
 # -----------------------------------------
 # Dynamic allocation (SCRUF-D mechanisms)
@@ -90,10 +108,10 @@ dynamic_seed = 42            # fixed seed for shuffling user processing order (s
 # Per-variant on/off switches -- each is independently re-runnable without touching the others.
 # "mi" = weighted/drawn from (1 - m_i) alone; "ci" = from c_i alone; "mi_ci" = from (1 - m_i) * c_i (SCRUF-D default).
 run_static_sc = True        # equal-weight run (borda/schulze as-is, no fairness reweighting)
-run_least_fair = True       # SCRUF-D "Least Fair": deterministic single lowest-m_i agent active each round
-run_weighted_mi = True      # SCRUF-D "Weighted", source="mi"
-run_weighted_ci = True      # SCRUF-D "Weighted", source="ci"
-run_weighted_mi_ci = True    # SCRUF-D "Weighted", source="mi_ci"
-run_lottery_mi = True       # SCRUF-D "Lottery", source="mi"
-run_lottery_ci = True       # SCRUF-D "Lottery", source="ci"
-run_lottery_mi_ci = True    # SCRUF-D "Lottery", source="mi_ci"
+run_least_fair = False       # SCRUF-D "Least Fair": deterministic single lowest-m_i agent active each round
+run_weighted_mi = False      # SCRUF-D "Weighted", source="mi"
+run_weighted_ci = False      # SCRUF-D "Weighted", source="ci"
+run_weighted_mi_ci = False    # SCRUF-D "Weighted", source="mi_ci"
+run_lottery_mi = False       # SCRUF-D "Lottery", source="mi"
+run_lottery_ci = False       # SCRUF-D "Lottery", source="ci"
+run_lottery_mi_ci = False    # SCRUF-D "Lottery", source="mi_ci"

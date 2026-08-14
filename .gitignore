@@ -21,3 +21,5 @@ recbole_general_recs/.data_path_override.yaml
 foursquare_global*
 osrm/data/
 osrm/cache/
+sweeps/*
+P-MMF/*
