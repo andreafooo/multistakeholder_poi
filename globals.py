@@ -11,18 +11,48 @@ top_k_eval = 10
 valid_popularity = "item_pop"
 recommendation_dirpart = "recommendations"
 available_datasets = [
-    "foursquaretky", "yelp"
-]  # choose betweeen "yelp" and "foursquaretky", and make sure to add the datasets to your BASE_DIR
+    "foursquaretky", 
+    "yelpphl", 
+]  # choose betweeen "yelp", "foursquaretky", "yelpphl", and "yelpno", and make sure to add the datasets to your BASE_DIR
 
- 
+# -----------------------------------------
+# Data Sampling (preprocessing/data_sampling.py)
+# -----------------------------------------
+# Some dataset keys above are city-restricted variants of a raw dataset rather than raw
+# datasets of their own -- they reuse the raw yelp_academic_dataset_*.json files from the
+# source dataset's BASE_DIR folder (no need to duplicate the multi-GB raw files), but write
+# their own sample into their own BASE_DIR/<dataset>_dataset folder, so the source dataset's
+# existing sample and everything built on it (recommendations, RecBole datasets, logs) stays
+# untouched.
+raw_source_dataset = {"yelpphl": "yelp"}  # <output dataset key> -> <raw-data source dataset key>
+city_filters = {"yelpphl": "Philadelphia"}  # restrict a dataset's POIs/check-ins to a single city
+
+# Foursquare check-ins tagged with these venue categories are private residences, not real
+# POIs -- excluded for both user privacy and recommendation quality.
+foursquare_excluded_categories = ["Home (private)", 
+                                  "Train Station", 
+                                  "Subway", 
+                                  "Bus Station",
+                                  "Light Rail",
+                                  "Airport",
+                                  "Taxi", 
+                                  "Road",
+                                  "Residential Building/Apartment/Condo",
+                                  "General Travel",
+                                  "Travel & Transport"]
+
+
+
+
+
 # -----------------------------------------
 # RecBole Config for baseline creation
 # -----------------------------------------
 datasets_for_recbole = [
- "foursquaretky_sample", "yelp_sample"
+ "foursquaretky_sample", "yelpphl_sample"
 ]  # add datasets for recbole from above with "_sample" suffix - make sure to add them to recbole_general_recs/dataset
 models_for_recbole = [
-    "BPR"
+    "BPR", "LightGCN", "NeuMF"
 ]  # add general recommendation models as baseline (e.g. BPR, SimpleX, ItemKNN, etc.)
 
 # -----------------------------------------

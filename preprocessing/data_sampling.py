@@ -1,7 +1,17 @@
 import pandas as pd
 import os
 import json
-from globals import BASE_DIR, available_datasets
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from globals import (  # noqa: E402
+    BASE_DIR,
+    available_datasets,
+    city_filters,
+    foursquare_excluded_categories,
+    raw_source_dataset,
+)
 
 
 """before calling the script, create a folder for every dataset in the BASE_DIR, 
@@ -27,6 +37,21 @@ def open_big_json(file_path):
     return df
 
 
+def open_big_json_filtered(file_path, id_column=None, valid_ids=None, chunksize=200_000):
+    """Streams a yelp json-lines file in chunks instead of materializing it whole, keeping
+    only rows whose id_column value is in valid_ids (if given). Same result as
+    open_big_json() + a filter, but with peak memory bounded by chunksize instead of the
+    full file -- needed for the multi-GB yelp review/user files, especially once a
+    city_filter (see globals.py) already means most rows will be dropped anyway."""
+    reader = pd.read_json(file_path, lines=True, chunksize=chunksize)
+    chunks = []
+    for chunk in reader:
+        if valid_ids is not None:
+            chunk = chunk[chunk[id_column].astype(str).isin(valid_ids)]
+        chunks.append(chunk)
+    return pd.concat(chunks, ignore_index=True) if chunks else pd.DataFrame()
+
+
 def convert_to_unix_timestamp(df, column_name):
     """
     Convert a column of timestamps in a DataFrame to Unix timestamps.
@@ -46,8 +71,17 @@ def convert_to_unix_timestamp(df, column_name):
 
 
 def dataset_specific_preprocessing(dataset, DATASET_DIR):
-    if dataset == "foursquarenyc" or dataset == "foursquaretky":
+    """DATASET_DIR is the folder holding the *raw* source files -- for a city-restricted
+    variant like "yelpphi" this is the raw dataset's own folder (e.g. yelp_dataset), not
+    the variant's own output folder; see `raw_source_dataset` in globals.py."""
+    base_dataset = raw_source_dataset.get(dataset, dataset)
+    city_filter = city_filters.get(dataset)
+
+    if base_dataset == "foursquarenyc" or base_dataset == "foursquaretky":
         checkin_df = pd.read_csv(os.path.join(DATASET_DIR, "foursquare_data.csv"), sep=",")
+        checkin_df = checkin_df[
+            ~checkin_df["venueCategory"].isin(foursquare_excluded_categories)
+        ]
         checkin_df = checkin_df.drop(columns=["timezoneOffset"])
         checkin_df = checkin_df.rename(
             columns={
@@ -73,9 +107,9 @@ def dataset_specific_preprocessing(dataset, DATASET_DIR):
         ].drop_duplicates(subset=["item_id:token"])
         checkin_df = checkin_df[["user_id:token", "item_id:token", "timestamp:float"]]
 
-    elif dataset == "gowalla" or dataset == "brightkite":
+    elif base_dataset == "gowalla" or base_dataset == "brightkite":
         checkin_df = pd.read_csv(
-            DATASET_DIR + f"loc-{dataset}_totalCheckins.txt",
+            DATASET_DIR + f"loc-{base_dataset}_totalCheckins.txt",
             sep="\t",
             header=None,
             names=[
@@ -92,7 +126,7 @@ def dataset_specific_preprocessing(dataset, DATASET_DIR):
             )
         ]
         user_df = pd.read_csv(
-            DATASET_DIR + f"loc-{dataset}_edges.txt",
+            DATASET_DIR + f"loc-{base_dataset}_edges.txt",
             sep="\t",
             header=None,
             names=["user_id:token", "friends:token_seq"],
@@ -108,11 +142,13 @@ def dataset_specific_preprocessing(dataset, DATASET_DIR):
         ].drop_duplicates(subset="item_id:token")
         checkin_df = checkin_df.drop(columns=["lat:float", "lon:float"])
 
-    elif dataset == "yelp":
+    elif base_dataset == "yelp":
         poi_df = pd.read_json(
             DATASET_DIR + "yelp_academic_dataset_business.json", lines=True
         )
         poi_df = poi_df.loc[poi_df["is_open"] == 1]
+        if city_filter:
+            poi_df = poi_df.loc[poi_df["city"].str.strip() == city_filter]
         poi_df = poi_df.drop(
             columns=[
                 "review_count",
@@ -135,7 +171,36 @@ def dataset_specific_preprocessing(dataset, DATASET_DIR):
                 "categories": "category_name:token_seq",
             }
         )
-        user_df = open_big_json(DATASET_DIR + "yelp_academic_dataset_user.json")
+        # checkin_df is loaded before user_df so user_df can be streamed straight down to
+        # only the users who actually show up in a check-in -- the multi-GB user/review
+        # files are read in chunks (open_big_json_filtered) rather than fully materialized,
+        # since a city_filter can drop the vast majority of rows anyway.
+        valid_business_ids = set(poi_df["item_id:token"]) if city_filter else None
+        checkin_df = open_big_json_filtered(
+            DATASET_DIR + "yelp_academic_dataset_review.json",
+            id_column="business_id",
+            valid_ids=valid_business_ids,
+        )
+        checkin_df = checkin_df.drop(
+            columns=["text", "cool", "stars", "useful", "funny", "review_id"]
+        )
+        checkin_df = checkin_df.rename(
+            columns={
+                "user_id": "user_id:token",
+                "business_id": "item_id:token",
+                "date": "timestamp:float",
+            }
+        )
+        checkin_df["timestamp"] = pd.to_datetime(
+            checkin_df["timestamp:float"], errors="coerce"
+        )
+
+        valid_user_ids = set(checkin_df["user_id:token"])
+        user_df = open_big_json_filtered(
+            DATASET_DIR + "yelp_academic_dataset_user.json",
+            id_column="user_id",
+            valid_ids=valid_user_ids,
+        )
         user_df = user_df.drop(
             columns=[
                 "review_count",
@@ -163,20 +228,6 @@ def dataset_specific_preprocessing(dataset, DATASET_DIR):
         user_df = user_df.rename(
             columns={"user_id": "user_id:token", "friends": "friends:token_seq"}
         )
-        checkin_df = open_big_json(DATASET_DIR + "yelp_academic_dataset_review.json")
-        checkin_df = checkin_df.drop(
-            columns=["text", "cool", "stars", "useful", "funny", "review_id"]
-        )
-        checkin_df = checkin_df.rename(
-            columns={
-                "user_id": "user_id:token",
-                "business_id": "item_id:token",
-                "date": "timestamp:float",
-            }
-        )
-        checkin_df["timestamp"] = pd.to_datetime(
-            checkin_df["timestamp:float"], errors="coerce"
-        )
 
         checkin_df["year"] = checkin_df[
             "timestamp"
@@ -190,7 +241,7 @@ def dataset_specific_preprocessing(dataset, DATASET_DIR):
     return checkin_df, user_df, poi_df
 
 
-def filter_df(df, min_reviews_user=15, min_reviews_business=10):
+def filter_df(df, min_reviews_user=10, min_reviews_business=10):
     """Remove cold users and items iteratively"""
     while True:
         user_counts = df["user_id:token"].value_counts()
@@ -397,16 +448,19 @@ def user_id_cleaner(df, column_name_list=["user_id:token", "item_id:token"]):
 #############################################
 
 
-def main():
-    for dataset in available_datasets:
+def main(datasets=None):
+    for dataset in (datasets or available_datasets):
+        raw_dataset = raw_source_dataset.get(dataset, dataset)
+        RAW_DATASET_DIR = os.path.join(BASE_DIR, f"{raw_dataset}_dataset") + os.sep
         DATASET_DIR = os.path.join(BASE_DIR, f"{dataset}_dataset")
+        os.makedirs(DATASET_DIR, exist_ok=True)
         print(DATASET_DIR)
         if dataset not in available_datasets:
             print(f"Dataset '{dataset}' is not available.")
             return
 
         checkin_df, user_df, poi_df = dataset_specific_preprocessing(
-            dataset, DATASET_DIR
+            dataset, RAW_DATASET_DIR
         )
         checkin_df.sort_values(by="timestamp:float", ascending=True, inplace=True)
         checkin_df_timestamp = checkin_df.copy()
@@ -437,7 +491,7 @@ def main():
                 checkin_df, 15, 20
             )  # for gowalla we used business min 20 & user min 15
         else:
-            checkin_df_filtered = filter_df(checkin_df, 15, 10)
+            checkin_df_filtered = filter_df(checkin_df, 10, 10)
 
         value_counts = checkin_df_filtered["item_id:token"].value_counts().reset_index()
         value_counts.columns = ["item_id:token", "count"]

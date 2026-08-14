@@ -1,17 +1,27 @@
 import pandas as pd
 import json
 import os
-from globals import available_datasets, BASE_DIR
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from globals import available_datasets, BASE_DIR, raw_source_dataset  # noqa: E402
 
 
 
 
-if __name__ == "__main__":
-    for dataset in available_datasets:
+def main(datasets=None):
+    for dataset in (datasets or available_datasets):
+        # city-restricted variants (e.g. "yelpphi") have no raw json/csv files of their
+        # own -- they reuse the source dataset's raw files, but everything derived
+        # (id_mappings.json, this script's output) lives under the variant's own folder
+        base_dataset = raw_source_dataset.get(dataset, dataset)
+        dataset_dir = os.path.join(BASE_DIR, f"{dataset}_dataset")
+        raw_dir = os.path.join(BASE_DIR, f"{base_dataset}_dataset")
 
-        if dataset == "foursquaretky":
+        if base_dataset == "foursquaretky":
             # Load your id_mappings.json
-            with open(os.path.join(BASE_DIR, f"{dataset}_dataset", "id_mappings.json"), "r") as f:
+            with open(os.path.join(dataset_dir, "id_mappings.json"), "r") as f:
                 id_mappings = json.load(f)
 
             # Extract the set of valid user IDs (cast to str so the isin() comparison
@@ -20,7 +30,7 @@ if __name__ == "__main__":
             valid_user_ids = set(str(v) for v in id_mappings['user'].values())
 
             # Read the CSV dataset
-            df = pd.read_csv(os.path.join(BASE_DIR, f"{dataset}_dataset", "foursquare_data.csv"))  # or whatever your file is named
+            df = pd.read_csv(os.path.join(raw_dir, "foursquare_data.csv"))  # or whatever your file is named
 
             # Filter to keep only rows where userId is in valid_user_ids
             filtered_df = df[
@@ -28,13 +38,13 @@ if __name__ == "__main__":
             ]
 
             # Save the filtered dataset
-            filtered_df.to_csv(os.path.join(BASE_DIR, f"{dataset}_dataset", f"{dataset}_sample_full_metadata.csv"), index=False)
+            filtered_df.to_csv(os.path.join(dataset_dir, f"{dataset}_sample_full_metadata.csv"), index=False)
 
             print(f"Filtered dataset saved. Original: {len(df)} rows, Filtered: {len(filtered_df)} rows")
 
-        elif dataset == "yelp":
+        elif base_dataset == "yelp":
             # Load your id_mappings.json
-            with open(os.path.join(BASE_DIR, f"{dataset}_dataset", "id_mappings.json"), "r") as f:
+            with open(os.path.join(dataset_dir, "id_mappings.json"), "r") as f:
                 id_mappings = json.load(f)
 
             # Extract valid user and item (business) IDs as strings, so the
@@ -51,7 +61,6 @@ if __name__ == "__main__":
                 )
             valid_item_ids = set(str(v) for v in id_mappings[item_key].values())
 
-            dataset_dir = os.path.join(BASE_DIR, f"{dataset}_dataset")
             CHUNK_SIZE = 100_000  # tune down if it still OOMs, up if it's too slow
 
             def filter_json_in_chunks(input_path, output_path, id_columns, valid_id_sets):
@@ -93,7 +102,7 @@ if __name__ == "__main__":
 
             # --- business file ---
             business_total, business_kept = filter_json_in_chunks(
-                os.path.join(dataset_dir, "yelp_academic_dataset_business.json"),
+                os.path.join(raw_dir, "yelp_academic_dataset_business.json"),
                 os.path.join(dataset_dir, f"{dataset}_sample_business_metadata.csv"),
                 id_columns=["business_id"],
                 valid_id_sets=[valid_item_ids],
@@ -102,7 +111,7 @@ if __name__ == "__main__":
 
             # --- user file ---
             user_total, user_kept = filter_json_in_chunks(
-                os.path.join(dataset_dir, "yelp_academic_dataset_user.json"),
+                os.path.join(raw_dir, "yelp_academic_dataset_user.json"),
                 os.path.join(dataset_dir, f"{dataset}_sample_user_metadata.csv"),
                 id_columns=["user_id"],
                 valid_id_sets=[valid_user_ids],
@@ -111,9 +120,13 @@ if __name__ == "__main__":
 
             # --- review file ---
             review_total, review_kept = filter_json_in_chunks(
-                os.path.join(dataset_dir, "yelp_academic_dataset_review.json"),
+                os.path.join(raw_dir, "yelp_academic_dataset_review.json"),
                 os.path.join(dataset_dir, f"{dataset}_sample_review_metadata.csv"),
                 id_columns=["user_id", "business_id"],
                 valid_id_sets=[valid_user_ids, valid_item_ids],
             )
             print(f"Filtered review file saved. Original: {review_total} rows, Filtered: {review_kept} rows")
+
+
+if __name__ == "__main__":
+    main()
