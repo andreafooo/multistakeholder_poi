@@ -10,3 +10,5 @@ python3 platform_reranker.py
 python3 provider_reranker.py
 python3 civic_reranker.py
 python3 social_choice_aggregation.py
+python3 multi_objective_reranker.py
+python3 rrf_aggregation.py
