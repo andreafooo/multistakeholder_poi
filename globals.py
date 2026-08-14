@@ -5,7 +5,7 @@ import os
 # -----------------------------------------
 PROJECT_BASE = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.join(PROJECT_BASE, "datasets") 
-top_k_resample = int(os.environ.get("TOP_K_RESAMPLE", 50))  # env override lets sweep_top_k_resample.py
+top_k_resample = 150
                                                                # vary this per subprocess without editing this file
 top_k_eval = 10
 valid_popularity = "item_pop"
@@ -61,7 +61,7 @@ models_for_recbole = [
 OSRM_HOST = "localhost"
 OSRM_PORTS = {
     "foursquaretky": {"car": 5000, "foot": 5001},
-    "yelp": {"car": 5002, "foot": 5003},
+    "yelpphl": {"car": 5002, "foot": 5003},
 }  # see osrm/docker-compose.yml -- run osrm/prepare_data.py once per dataset first
 OSRM_DEFAULT_PROFILE = "foot"  # civic/local access is typically pedestrian-scale
 OSRM_REQUEST_TIMEOUT = 5  # seconds -- for single-pair /route and /nearest calls
