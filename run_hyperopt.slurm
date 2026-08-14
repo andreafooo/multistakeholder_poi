@@ -16,3 +16,7 @@ source venv/bin/activate
 
 python3 ./recbole_general_recs/config_hyperparameter_creator.py
 python3 ./recbole_general_recs/recbole_full_casestudy.py
+
+# Chain the (GPU-free) re-ranking/aggregation job so it only starts once this
+# job finishes successfully; afterok = it is skipped entirely if this job fails.
+sbatch --dependency=afterok:"$SLURM_JOB_ID" run_rerank_and_aggregate.slurm
