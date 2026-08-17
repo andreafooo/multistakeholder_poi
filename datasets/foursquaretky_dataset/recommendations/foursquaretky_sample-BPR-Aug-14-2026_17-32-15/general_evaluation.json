@@ -1,0 +1,24 @@
+{
+    "best_valid_score": 0.0937,
+    "valid_score_bigger": true,
+    "best_valid_result": {
+        "recall@10": 0.1132,
+        "mrr@10": 0.1618,
+        "ndcg@10": 0.0937,
+        "hit@10": 0.3393,
+        "precision@10": 0.0431,
+        "map@10": 0.0513,
+        "giniindex@10": 0.9424,
+        "tailpercentage@10": 0.0013
+    },
+    "test_result": {
+        "recall@10": 0.1064,
+        "mrr@10": 0.2081,
+        "ndcg@10": 0.1037,
+        "hit@10": 0.402,
+        "precision@10": 0.0559,
+        "map@10": 0.0542,
+        "giniindex@10": 0.9404,
+        "tailpercentage@10": 0.0013
+    }
+}
