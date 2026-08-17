@@ -3,8 +3,11 @@ One-time (per dataset) OSRM data preparation.
 
 For each dataset this:
   1. Figures out which OSM extract(s) cover its POIs.
-  2. Downloads the extract(s) from Geofabrik (merging multiple states for
-     yelp's multi-metro US spread via `osmium merge`).
+  2. Downloads the extract(s) from Geofabrik (merging multiple states via
+     `osmium merge`, for a dataset whose POIs span more than one -- neither
+     current dataset does: foursquaretky is a single Kanto extract, yelpphl
+     is city-filtered to Philadelphia and resolves to the single Pennsylvania
+     state extract).
   3. Runs osrm-extract / osrm-partition / osrm-customize (via the
      osrm/osrm-backend Docker image, MLD algorithm) once per routing profile
      (car, foot), producing routable .osrm files under osrm/data/<dataset>/<profile>/.
@@ -16,8 +19,8 @@ already exists; pass --force to redo a dataset from scratch.
 
 Usage:
     python3 osrm/prepare_data.py --dataset foursquaretky
-    python3 osrm/prepare_data.py --dataset yelp
-    python3 osrm/prepare_data.py --dataset yelp --force
+    python3 osrm/prepare_data.py --dataset yelpphl
+    python3 osrm/prepare_data.py --dataset yelpphl --force
 """
 
 import argparse
@@ -40,8 +43,15 @@ OSRM_IMAGE = "osrm/osrm-backend"
 
 # Tokyo (foursquaretky) is fully contained in Geofabrik's "kanto" sub-region
 # of Japan -- much smaller than the whole-Japan extract.
+#
+# Philadelphia (yelpphl) sits near the DE/NJ/PA tri-state border, so the
+# generic bbox-based state detection below would otherwise pull in all three
+# and require `osmium merge`. Pinned to the single Pennsylvania extract
+# instead -- the handful of POIs just across the DE/NJ line fall back to
+# haversine (no route found) rather than needing that extra dependency.
 SINGLE_EXTRACT_DATASETS = {
     "foursquaretky": "https://download.geofabrik.de/asia/japan/kanto-latest.osm.pbf",
+    "yelpphl": "https://download.geofabrik.de/north-america/us/pennsylvania-latest.osm.pbf",
 }
 
 
@@ -73,7 +83,9 @@ def resolve_region_pbf(dataset, force=False):
         shutil.copyfile(raw_path, merged_path)
         return merged_path
 
-    # Multi-state dataset (yelp): detect states, download each, merge.
+    # Detect state(s) the dataset's POIs fall in, download each, merge if >1
+    # (yelpphl is city-filtered to Philadelphia, so this resolves to a single
+    # Pennsylvania extract -- no country-wide download).
     coords_df = load_coordinates(dataset)
     states = states_for_coords(coords_df)
     if not states:
@@ -124,7 +136,7 @@ def build_profile(dataset, profile, region_pbf, force=False):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset", required=True, choices=["foursquaretky", "yelp"])
+    parser.add_argument("--dataset", required=True, choices=["foursquaretky", "yelpphl"])
     parser.add_argument("--profiles", nargs="+", choices=PROFILES, default=PROFILES,
                          help="Which profile(s) to build -- extract/partition/customize run "
                               "once per profile, so pass just one (e.g. --profiles foot) to "

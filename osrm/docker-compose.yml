@@ -17,20 +17,20 @@ services:
       - "5001:5000"
     restart: unless-stopped
 
-  yelp-car:
+  yelpphl-car:
     image: osrm/osrm-backend
     command: osrm-routed --algorithm mld --max-table-size 250 /data/region.osrm
     volumes:
-      - ./data/yelp/car:/data
+      - ./data/yelpphl/car:/data
     ports:
       - "5002:5000"
     restart: unless-stopped
 
-  yelp-foot:
+  yelpphl-foot:
     image: osrm/osrm-backend
     command: osrm-routed --algorithm mld --max-table-size 250 /data/region.osrm
     volumes:
-      - ./data/yelp/foot:/data
+      - ./data/yelpphl/foot:/data
     ports:
       - "5003:5000"
     restart: unless-stopped

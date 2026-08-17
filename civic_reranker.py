@@ -201,11 +201,11 @@ def load_coordinates(dataset):
     return coords_df
 
 
-def main(available_datasets):
+def main(available_datasets, method_name="civic", osrm_profile=None):
     for dataset in tqdm(available_datasets, desc="Processing datasets"):
         data = dataset_metadata(dataset)
         coords_df = load_coordinates(dataset)
-        reranker = GeoReranker(coords_df, 0.01, dataset=dataset)
+        reranker = GeoReranker(coords_df, 0.01, dataset=dataset, osrm_profile=osrm_profile)
         if reranker.osrm_client is not None:
             reranker.osrm_client.wait_until_ready()
 
@@ -231,7 +231,7 @@ def main(available_datasets):
                     recommendations_df=base_resample,
                     top_k=top_k_resample,
                 )
-                save_top_k(out_df, basedir, "civic")
+                save_top_k(out_df, basedir, method_name)
 
             except Exception as e:
                 traceback.print_exception(type(e), e, e.__traceback__)
@@ -241,4 +241,19 @@ def main(available_datasets):
 
 
 if __name__ == "__main__":
-    main(available_datasets)
+    import argparse
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--method-name", default="civic",
+        help="Output method name (top_k_recommendations subfolder), so an OSRM-backed "
+             "run can be kept separate from an existing haversine-fallback run instead "
+             "of overwriting it, e.g. --method-name civic_osrm",
+    )
+    parser.add_argument(
+        "--osrm-profile", default=None,
+        help="'car' or 'foot' (default: globals.OSRM_DEFAULT_PROFILE)",
+    )
+    args = parser.parse_args()
+
+    main(available_datasets, method_name=args.method_name, osrm_profile=args.osrm_profile)
