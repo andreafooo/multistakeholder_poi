@@ -7,6 +7,7 @@ benchmark_filename:
 - valid
 - test
 dataset: foursquaretky_sample
+embedding_size: 64
 epochs: 200
 eval_args:
   group_by: user
@@ -37,6 +38,7 @@ metrics:
 model: BPR
 show_progress: false
 topk: 10
+train_batch_size: 512
 train_neg_sample_args:
   uniform: 1
 user_inter_num_interval: '[0,inf)'

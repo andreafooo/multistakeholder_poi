@@ -19,7 +19,7 @@ eval_args:
 field_separator: "\t"
 filter_inter_by_user_or_item: false
 item_inter_num_interval: '[0,inf)'
-learning_rate: 0.005
+learning_rate: 0.01
 load_col:
   inter:
   - user_id
@@ -35,8 +35,8 @@ metrics:
 - GiniIndex
 - TailPercentage
 model: LightGCN
-n_layers: 3
-reg_weight: 0.01
+n_layers: 4
+reg_weight: 0.001
 show_progress: false
 topk: 10
 train_neg_sample_args:

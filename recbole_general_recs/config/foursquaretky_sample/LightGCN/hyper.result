@@ -1,168 +1,180 @@
-learning_rate:0.005, n_layers:3, reg_weight:1e-05
+learning_rate:0.001, n_layers:4, reg_weight:0.0001
 Valid result:
-recall@10 : 0.1351    mrr@10 : 0.308    ndcg@10 : 0.1447    hit@10 : 0.5653    precision@10 : 0.0896    map@10 : 0.0739    giniindex@10 : 0.9467    tailpercentage@10 : 0.0015
+recall@10 : 0.0843    mrr@10 : 0.1403    ndcg@10 : 0.0764    hit@10 : 0.2607    precision@10 : 0.0321    map@10 : 0.0442    giniindex@10 : 0.9903    tailpercentage@10 : 0.0001
 Test result:
-recall@10 : 0.1343    mrr@10 : 0.4247    ndcg@10 : 0.1802    hit@10 : 0.6787    precision@10 : 0.1259    map@10 : 0.091    giniindex@10 : 0.9424    tailpercentage@10 : 0.0015
-
-learning_rate:0.0005, n_layers:2, reg_weight:1e-05
-Valid result:
-recall@10 : 0.1094    mrr@10 : 0.2591    ndcg@10 : 0.1177    hit@10 : 0.4967    precision@10 : 0.0741    map@10 : 0.0578    giniindex@10 : 0.995    tailpercentage@10 : 0.0007
-Test result:
-recall@10 : 0.1113    mrr@10 : 0.3798    ndcg@10 : 0.1557    hit@10 : 0.588    precision@10 : 0.1051    map@10 : 0.0795    giniindex@10 : 0.9946    tailpercentage@10 : 0.0007
-
-learning_rate:0.005, n_layers:2, reg_weight:0.0001
-Valid result:
-recall@10 : 0.1346    mrr@10 : 0.3078    ndcg@10 : 0.1436    hit@10 : 0.574    precision@10 : 0.0893    map@10 : 0.0724    giniindex@10 : 0.9378    tailpercentage@10 : 0.0012
-Test result:
-recall@10 : 0.1299    mrr@10 : 0.4177    ndcg@10 : 0.1755    hit@10 : 0.668    precision@10 : 0.1227    map@10 : 0.0882    giniindex@10 : 0.9328    tailpercentage@10 : 0.0013
-
-learning_rate:0.0001, n_layers:4, reg_weight:1e-05
-Valid result:
-recall@10 : 0.1081    mrr@10 : 0.2583    ndcg@10 : 0.1167    hit@10 : 0.4913    precision@10 : 0.0729    map@10 : 0.0575    giniindex@10 : 0.9952    tailpercentage@10 : 0.0
-Test result:
-recall@10 : 0.1096    mrr@10 : 0.3747    ndcg@10 : 0.1533    hit@10 : 0.5827    precision@10 : 0.1036    map@10 : 0.0781    giniindex@10 : 0.9949    tailpercentage@10 : 0.0
-
-learning_rate:0.001, n_layers:4, reg_weight:1e-05
-Valid result:
-recall@10 : 0.108    mrr@10 : 0.2588    ndcg@10 : 0.1166    hit@10 : 0.492    precision@10 : 0.0726    map@10 : 0.0574    giniindex@10 : 0.9952    tailpercentage@10 : 0.0
-Test result:
-recall@10 : 0.1099    mrr@10 : 0.3763    ndcg@10 : 0.1537    hit@10 : 0.584    precision@10 : 0.1038    map@10 : 0.0782    giniindex@10 : 0.9949    tailpercentage@10 : 0.0
-
-learning_rate:0.005, n_layers:4, reg_weight:0.0001
-Valid result:
-recall@10 : 0.1359    mrr@10 : 0.3031    ndcg@10 : 0.1439    hit@10 : 0.576    precision@10 : 0.0908    map@10 : 0.0728    giniindex@10 : 0.9498    tailpercentage@10 : 0.0015
-Test result:
-recall@10 : 0.1322    mrr@10 : 0.4245    ndcg@10 : 0.1796    hit@10 : 0.67    precision@10 : 0.1247    map@10 : 0.0912    giniindex@10 : 0.9456    tailpercentage@10 : 0.0015
-
-learning_rate:0.01, n_layers:4, reg_weight:0.0001
-Valid result:
-recall@10 : 0.1336    mrr@10 : 0.3058    ndcg@10 : 0.1429    hit@10 : 0.5687    precision@10 : 0.0889    map@10 : 0.0722    giniindex@10 : 0.9403    tailpercentage@10 : 0.0015
-Test result:
-recall@10 : 0.1286    mrr@10 : 0.4197    ndcg@10 : 0.1749    hit@10 : 0.6667    precision@10 : 0.1212    map@10 : 0.088    giniindex@10 : 0.9357    tailpercentage@10 : 0.0016
+recall@10 : 0.0865    mrr@10 : 0.1874    ndcg@10 : 0.088    hit@10 : 0.342    precision@10 : 0.0451    map@10 : 0.0464    giniindex@10 : 0.99    tailpercentage@10 : 0.0003
 
 learning_rate:0.01, n_layers:3, reg_weight:0.01
 Valid result:
-recall@10 : 0.1347    mrr@10 : 0.3051    ndcg@10 : 0.1437    hit@10 : 0.57    precision@10 : 0.0891    map@10 : 0.0732    giniindex@10 : 0.9518    tailpercentage@10 : 0.0015
+recall@10 : 0.134    mrr@10 : 0.1872    ndcg@10 : 0.111    hit@10 : 0.3793    precision@10 : 0.0484    map@10 : 0.0633    giniindex@10 : 0.9253    tailpercentage@10 : 0.0019
 Test result:
-recall@10 : 0.1322    mrr@10 : 0.4221    ndcg@10 : 0.1783    hit@10 : 0.672    precision@10 : 0.1239    map@10 : 0.0903    giniindex@10 : 0.9477    tailpercentage@10 : 0.0017
-
-learning_rate:0.005, n_layers:3, reg_weight:0.001
-Valid result:
-recall@10 : 0.135    mrr@10 : 0.3083    ndcg@10 : 0.1447    hit@10 : 0.5653    precision@10 : 0.0895    map@10 : 0.074    giniindex@10 : 0.9467    tailpercentage@10 : 0.0015
-Test result:
-recall@10 : 0.1343    mrr@10 : 0.4254    ndcg@10 : 0.1804    hit@10 : 0.6787    precision@10 : 0.1259    map@10 : 0.0911    giniindex@10 : 0.9424    tailpercentage@10 : 0.0015
-
-learning_rate:0.01, n_layers:2, reg_weight:0.01
-Valid result:
-recall@10 : 0.133    mrr@10 : 0.3045    ndcg@10 : 0.1425    hit@10 : 0.562    precision@10 : 0.0879    map@10 : 0.0724    giniindex@10 : 0.9403    tailpercentage@10 : 0.0007
-Test result:
-recall@10 : 0.1308    mrr@10 : 0.4114    ndcg@10 : 0.1745    hit@10 : 0.6627    precision@10 : 0.1225    map@10 : 0.0878    giniindex@10 : 0.936    tailpercentage@10 : 0.001
-
-learning_rate:0.01, n_layers:2, reg_weight:1e-05
-Valid result:
-recall@10 : 0.1342    mrr@10 : 0.302    ndcg@10 : 0.1423    hit@10 : 0.564    precision@10 : 0.0883    map@10 : 0.0722    giniindex@10 : 0.94    tailpercentage@10 : 0.0007
-Test result:
-recall@10 : 0.1316    mrr@10 : 0.415    ndcg@10 : 0.1757    hit@10 : 0.668    precision@10 : 0.1233    map@10 : 0.0884    giniindex@10 : 0.9354    tailpercentage@10 : 0.001
-
-learning_rate:0.0001, n_layers:4, reg_weight:0.01
-Valid result:
-recall@10 : 0.1076    mrr@10 : 0.2586    ndcg@10 : 0.1164    hit@10 : 0.49    precision@10 : 0.0725    map@10 : 0.0573    giniindex@10 : 0.9953    tailpercentage@10 : 0.0
-Test result:
-recall@10 : 0.1091    mrr@10 : 0.3743    ndcg@10 : 0.1529    hit@10 : 0.5813    precision@10 : 0.1032    map@10 : 0.0778    giniindex@10 : 0.9949    tailpercentage@10 : 0.0
-
-learning_rate:0.005, n_layers:3, reg_weight:0.01
-Valid result:
-recall@10 : 0.1368    mrr@10 : 0.3076    ndcg@10 : 0.1451    hit@10 : 0.5813    precision@10 : 0.091    map@10 : 0.0732    giniindex@10 : 0.9318    tailpercentage@10 : 0.0013
-Test result:
-recall@10 : 0.1328    mrr@10 : 0.4262    ndcg@10 : 0.1792    hit@10 : 0.676    precision@10 : 0.1246    map@10 : 0.0903    giniindex@10 : 0.9262    tailpercentage@10 : 0.0014
+recall@10 : 0.1248    mrr@10 : 0.2381    ndcg@10 : 0.1209    hit@10 : 0.454    precision@10 : 0.0649    map@10 : 0.0636    giniindex@10 : 0.9214    tailpercentage@10 : 0.0021
 
 learning_rate:0.001, n_layers:1, reg_weight:0.01
 Valid result:
-recall@10 : 0.1334    mrr@10 : 0.3027    ndcg@10 : 0.1421    hit@10 : 0.5593    precision@10 : 0.0887    map@10 : 0.0716    giniindex@10 : 0.9667    tailpercentage@10 : 0.0007
+recall@10 : 0.1292    mrr@10 : 0.1829    ndcg@10 : 0.1083    hit@10 : 0.3627    precision@10 : 0.048    map@10 : 0.0619    giniindex@10 : 0.9039    tailpercentage@10 : 0.0017
 Test result:
-recall@10 : 0.1304    mrr@10 : 0.4226    ndcg@10 : 0.1786    hit@10 : 0.6627    precision@10 : 0.1229    map@10 : 0.0914    giniindex@10 : 0.9642    tailpercentage@10 : 0.0008
+recall@10 : 0.1258    mrr@10 : 0.239    ndcg@10 : 0.1216    hit@10 : 0.446    precision@10 : 0.0657    map@10 : 0.0644    giniindex@10 : 0.8997    tailpercentage@10 : 0.0017
 
-learning_rate:0.001, n_layers:1, reg_weight:0.0001
+learning_rate:0.0001, n_layers:4, reg_weight:1e-05
 Valid result:
-recall@10 : 0.134    mrr@10 : 0.3025    ndcg@10 : 0.1421    hit@10 : 0.56    precision@10 : 0.0887    map@10 : 0.0716    giniindex@10 : 0.9661    tailpercentage@10 : 0.0005
+recall@10 : 0.0847    mrr@10 : 0.1419    ndcg@10 : 0.077    hit@10 : 0.266    precision@10 : 0.0323    map@10 : 0.0445    giniindex@10 : 0.9817    tailpercentage@10 : 0.0009
 Test result:
-recall@10 : 0.1305    mrr@10 : 0.4236    ndcg@10 : 0.179    hit@10 : 0.6627    precision@10 : 0.1233    map@10 : 0.0917    giniindex@10 : 0.9635    tailpercentage@10 : 0.0007
+recall@10 : 0.0822    mrr@10 : 0.1848    ndcg@10 : 0.0852    hit@10 : 0.3293    precision@10 : 0.0431    map@10 : 0.045    giniindex@10 : 0.981    tailpercentage@10 : 0.0013
 
-learning_rate:0.01, n_layers:2, reg_weight:0.001
+learning_rate:0.01, n_layers:2, reg_weight:0.01
 Valid result:
-recall@10 : 0.134    mrr@10 : 0.3021    ndcg@10 : 0.1422    hit@10 : 0.564    precision@10 : 0.0882    map@10 : 0.0721    giniindex@10 : 0.9401    tailpercentage@10 : 0.0007
+recall@10 : 0.1296    mrr@10 : 0.1766    ndcg@10 : 0.1055    hit@10 : 0.3693    precision@10 : 0.0468    map@10 : 0.0592    giniindex@10 : 0.8926    tailpercentage@10 : 0.0033
 Test result:
-recall@10 : 0.1314    mrr@10 : 0.415    ndcg@10 : 0.1756    hit@10 : 0.668    precision@10 : 0.1232    map@10 : 0.0883    giniindex@10 : 0.9354    tailpercentage@10 : 0.001
+recall@10 : 0.1212    mrr@10 : 0.2319    ndcg@10 : 0.1174    hit@10 : 0.4453    precision@10 : 0.0638    map@10 : 0.0615    giniindex@10 : 0.8879    tailpercentage@10 : 0.0033
 
-learning_rate:0.0001, n_layers:3, reg_weight:0.001
+learning_rate:0.005, n_layers:3, reg_weight:0.01
 Valid result:
-recall@10 : 0.1082    mrr@10 : 0.2586    ndcg@10 : 0.1168    hit@10 : 0.494    precision@10 : 0.0731    map@10 : 0.0574    giniindex@10 : 0.9952    tailpercentage@10 : 0.0002
+recall@10 : 0.1345    mrr@10 : 0.1834    ndcg@10 : 0.1105    hit@10 : 0.3767    precision@10 : 0.049    map@10 : 0.0626    giniindex@10 : 0.9284    tailpercentage@10 : 0.0017
 Test result:
-recall@10 : 0.1104    mrr@10 : 0.3738    ndcg@10 : 0.1536    hit@10 : 0.5847    precision@10 : 0.1041    map@10 : 0.078    giniindex@10 : 0.9948    tailpercentage@10 : 0.0002
+recall@10 : 0.1302    mrr@10 : 0.2418    ndcg@10 : 0.124    hit@10 : 0.4533    precision@10 : 0.0669    map@10 : 0.0655    giniindex@10 : 0.9247    tailpercentage@10 : 0.0019
 
-learning_rate:0.0005, n_layers:4, reg_weight:0.01
+learning_rate:0.0001, n_layers:4, reg_weight:0.001
 Valid result:
-recall@10 : 0.1077    mrr@10 : 0.2579    ndcg@10 : 0.1162    hit@10 : 0.49    precision@10 : 0.0725    map@10 : 0.0571    giniindex@10 : 0.9953    tailpercentage@10 : 0.0
+recall@10 : 0.0846    mrr@10 : 0.1419    ndcg@10 : 0.077    hit@10 : 0.266    precision@10 : 0.0322    map@10 : 0.0445    giniindex@10 : 0.9818    tailpercentage@10 : 0.0009
 Test result:
-recall@10 : 0.1092    mrr@10 : 0.3755    ndcg@10 : 0.1532    hit@10 : 0.582    precision@10 : 0.1033    map@10 : 0.078    giniindex@10 : 0.9949    tailpercentage@10 : 0.0
+recall@10 : 0.0824    mrr@10 : 0.1848    ndcg@10 : 0.0853    hit@10 : 0.33    precision@10 : 0.0432    map@10 : 0.0451    giniindex@10 : 0.9811    tailpercentage@10 : 0.0013
 
-learning_rate:0.001, n_layers:3, reg_weight:0.0001
+learning_rate:0.0005, n_layers:4, reg_weight:1e-05
 Valid result:
-recall@10 : 0.1079    mrr@10 : 0.2591    ndcg@10 : 0.1166    hit@10 : 0.4927    precision@10 : 0.0726    map@10 : 0.0574    giniindex@10 : 0.9952    tailpercentage@10 : 0.0001
+recall@10 : 0.0849    mrr@10 : 0.1418    ndcg@10 : 0.0772    hit@10 : 0.262    precision@10 : 0.032    map@10 : 0.0447    giniindex@10 : 0.9839    tailpercentage@10 : 0.0007
 Test result:
-recall@10 : 0.1097    mrr@10 : 0.3775    ndcg@10 : 0.154    hit@10 : 0.5833    precision@10 : 0.1037    map@10 : 0.0785    giniindex@10 : 0.9949    tailpercentage@10 : 0.0001
+recall@10 : 0.0839    mrr@10 : 0.187    ndcg@10 : 0.0867    hit@10 : 0.3347    precision@10 : 0.0441    map@10 : 0.0458    giniindex@10 : 0.9833    tailpercentage@10 : 0.0009
 
-learning_rate:0.005, n_layers:4, reg_weight:1e-05
+learning_rate:0.001, n_layers:3, reg_weight:0.01
 Valid result:
-recall@10 : 0.1359    mrr@10 : 0.3031    ndcg@10 : 0.1439    hit@10 : 0.576    precision@10 : 0.0908    map@10 : 0.0728    giniindex@10 : 0.9498    tailpercentage@10 : 0.0015
+recall@10 : 0.0896    mrr@10 : 0.145    ndcg@10 : 0.0804    hit@10 : 0.2747    precision@10 : 0.0341    map@10 : 0.0465    giniindex@10 : 0.9872    tailpercentage@10 : 0.0008
 Test result:
-recall@10 : 0.1322    mrr@10 : 0.4245    ndcg@10 : 0.1796    hit@10 : 0.67    precision@10 : 0.1247    map@10 : 0.0912    giniindex@10 : 0.9456    tailpercentage@10 : 0.0015
+recall@10 : 0.0856    mrr@10 : 0.1942    ndcg@10 : 0.0903    hit@10 : 0.3307    precision@10 : 0.0452    map@10 : 0.0489    giniindex@10 : 0.9867    tailpercentage@10 : 0.0009
 
-learning_rate:0.01, n_layers:3, reg_weight:0.0001
+learning_rate:0.001, n_layers:4, reg_weight:1e-05
 Valid result:
-recall@10 : 0.1346    mrr@10 : 0.3047    ndcg@10 : 0.1433    hit@10 : 0.5693    precision@10 : 0.0887    map@10 : 0.0729    giniindex@10 : 0.9511    tailpercentage@10 : 0.0015
+recall@10 : 0.0843    mrr@10 : 0.1403    ndcg@10 : 0.0764    hit@10 : 0.2607    precision@10 : 0.0321    map@10 : 0.0442    giniindex@10 : 0.9903    tailpercentage@10 : 0.0001
 Test result:
-recall@10 : 0.1327    mrr@10 : 0.4223    ndcg@10 : 0.1785    hit@10 : 0.6733    precision@10 : 0.1241    map@10 : 0.0903    giniindex@10 : 0.9472    tailpercentage@10 : 0.0017
+recall@10 : 0.0865    mrr@10 : 0.1874    ndcg@10 : 0.088    hit@10 : 0.342    precision@10 : 0.0451    map@10 : 0.0464    giniindex@10 : 0.9899    tailpercentage@10 : 0.0003
 
-learning_rate:0.01, n_layers:4, reg_weight:0.01
+learning_rate:0.005, n_layers:4, reg_weight:0.001
 Valid result:
-recall@10 : 0.1345    mrr@10 : 0.3061    ndcg@10 : 0.1432    hit@10 : 0.572    precision@10 : 0.0895    map@10 : 0.0721    giniindex@10 : 0.9413    tailpercentage@10 : 0.0015
+recall@10 : 0.136    mrr@10 : 0.1851    ndcg@10 : 0.1111    hit@10 : 0.382    precision@10 : 0.0494    map@10 : 0.0626    giniindex@10 : 0.902    tailpercentage@10 : 0.0021
 Test result:
-recall@10 : 0.1277    mrr@10 : 0.4225    ndcg@10 : 0.1749    hit@10 : 0.666    precision@10 : 0.1202    map@10 : 0.0882    giniindex@10 : 0.9369    tailpercentage@10 : 0.0015
-
-learning_rate:0.0001, n_layers:3, reg_weight:0.01
-Valid result:
-recall@10 : 0.1084    mrr@10 : 0.2586    ndcg@10 : 0.1168    hit@10 : 0.4947    precision@10 : 0.0731    map@10 : 0.0574    giniindex@10 : 0.9952    tailpercentage@10 : 0.0002
-Test result:
-recall@10 : 0.1107    mrr@10 : 0.3745    ndcg@10 : 0.1538    hit@10 : 0.586    precision@10 : 0.1043    map@10 : 0.0782    giniindex@10 : 0.9948    tailpercentage@10 : 0.0002
+recall@10 : 0.1278    mrr@10 : 0.2429    ndcg@10 : 0.1232    hit@10 : 0.456    precision@10 : 0.0663    map@10 : 0.0652    giniindex@10 : 0.8976    tailpercentage@10 : 0.0022
 
 learning_rate:0.01, n_layers:4, reg_weight:0.001
 Valid result:
-recall@10 : 0.1338    mrr@10 : 0.306    ndcg@10 : 0.143    hit@10 : 0.5687    precision@10 : 0.089    map@10 : 0.0724    giniindex@10 : 0.9404    tailpercentage@10 : 0.0016
+recall@10 : 0.1382    mrr@10 : 0.1859    ndcg@10 : 0.1128    hit@10 : 0.38    precision@10 : 0.05    map@10 : 0.064    giniindex@10 : 0.9026    tailpercentage@10 : 0.0021
 Test result:
-recall@10 : 0.1282    mrr@10 : 0.42    ndcg@10 : 0.1746    hit@10 : 0.6667    precision@10 : 0.1208    map@10 : 0.0879    giniindex@10 : 0.9359    tailpercentage@10 : 0.0017
+recall@10 : 0.1293    mrr@10 : 0.241    ndcg@10 : 0.1234    hit@10 : 0.4567    precision@10 : 0.0663    map@10 : 0.0652    giniindex@10 : 0.8978    tailpercentage@10 : 0.0025
 
-learning_rate:0.01, n_layers:1, reg_weight:0.01
+learning_rate:0.001, n_layers:2, reg_weight:0.0001
 Valid result:
-recall@10 : 0.1305    mrr@10 : 0.2897    ndcg@10 : 0.1363    hit@10 : 0.55    precision@10 : 0.0853    map@10 : 0.068    giniindex@10 : 0.9593    tailpercentage@10 : 0.0013
+recall@10 : 0.13    mrr@10 : 0.1822    ndcg@10 : 0.1083    hit@10 : 0.3667    precision@10 : 0.0475    map@10 : 0.0619    giniindex@10 : 0.9346    tailpercentage@10 : 0.0013
 Test result:
-recall@10 : 0.1254    mrr@10 : 0.4114    ndcg@10 : 0.1712    hit@10 : 0.6447    precision@10 : 0.1179    map@10 : 0.0867    giniindex@10 : 0.9567    tailpercentage@10 : 0.0015
+recall@10 : 0.1281    mrr@10 : 0.2401    ndcg@10 : 0.1226    hit@10 : 0.452    precision@10 : 0.0662    map@10 : 0.0647    giniindex@10 : 0.9309    tailpercentage@10 : 0.0013
 
-learning_rate:0.0001, n_layers:3, reg_weight:0.0001
+learning_rate:0.005, n_layers:2, reg_weight:0.0001
 Valid result:
-recall@10 : 0.1082    mrr@10 : 0.2586    ndcg@10 : 0.1168    hit@10 : 0.494    precision@10 : 0.0731    map@10 : 0.0574    giniindex@10 : 0.9952    tailpercentage@10 : 0.0002
+recall@10 : 0.1327    mrr@10 : 0.1816    ndcg@10 : 0.1081    hit@10 : 0.3727    precision@10 : 0.0479    map@10 : 0.0607    giniindex@10 : 0.926    tailpercentage@10 : 0.0014
 Test result:
-recall@10 : 0.1104    mrr@10 : 0.3738    ndcg@10 : 0.1536    hit@10 : 0.5853    precision@10 : 0.1041    map@10 : 0.078    giniindex@10 : 0.9948    tailpercentage@10 : 0.0002
+recall@10 : 0.1269    mrr@10 : 0.2432    ndcg@10 : 0.1233    hit@10 : 0.45    precision@10 : 0.0657    map@10 : 0.0656    giniindex@10 : 0.9223    tailpercentage@10 : 0.0016
 
-learning_rate:0.005, n_layers:4, reg_weight:0.01
+learning_rate:0.0001, n_layers:4, reg_weight:0.0001
 Valid result:
-recall@10 : 0.1345    mrr@10 : 0.3041    ndcg@10 : 0.1438    hit@10 : 0.5713    precision@10 : 0.0901    map@10 : 0.0731    giniindex@10 : 0.9508    tailpercentage@10 : 0.0014
+recall@10 : 0.0847    mrr@10 : 0.1419    ndcg@10 : 0.077    hit@10 : 0.266    precision@10 : 0.0323    map@10 : 0.0445    giniindex@10 : 0.9817    tailpercentage@10 : 0.0009
 Test result:
-recall@10 : 0.1315    mrr@10 : 0.4257    ndcg@10 : 0.1795    hit@10 : 0.6693    precision@10 : 0.1243    map@10 : 0.0913    giniindex@10 : 0.9465    tailpercentage@10 : 0.0014
+recall@10 : 0.0822    mrr@10 : 0.1847    ndcg@10 : 0.0852    hit@10 : 0.3293    precision@10 : 0.0431    map@10 : 0.045    giniindex@10 : 0.981    tailpercentage@10 : 0.0013
+
+learning_rate:0.001, n_layers:2, reg_weight:0.01
+Valid result:
+recall@10 : 0.0916    mrr@10 : 0.1496    ndcg@10 : 0.0827    hit@10 : 0.278    precision@10 : 0.0352    map@10 : 0.048    giniindex@10 : 0.9738    tailpercentage@10 : 0.0013
+Test result:
+recall@10 : 0.0882    mrr@10 : 0.1996    ndcg@10 : 0.0935    hit@10 : 0.3373    precision@10 : 0.0469    map@10 : 0.0513    giniindex@10 : 0.9728    tailpercentage@10 : 0.0017
+
+learning_rate:0.001, n_layers:4, reg_weight:0.001
+Valid result:
+recall@10 : 0.0844    mrr@10 : 0.1403    ndcg@10 : 0.0765    hit@10 : 0.2613    precision@10 : 0.0321    map@10 : 0.0442    giniindex@10 : 0.9903    tailpercentage@10 : 0.0001
+Test result:
+recall@10 : 0.0864    mrr@10 : 0.1874    ndcg@10 : 0.088    hit@10 : 0.342    precision@10 : 0.045    map@10 : 0.0464    giniindex@10 : 0.99    tailpercentage@10 : 0.0003
+
+learning_rate:0.0001, n_layers:2, reg_weight:0.01
+Valid result:
+recall@10 : 0.0911    mrr@10 : 0.1493    ndcg@10 : 0.0818    hit@10 : 0.2753    precision@10 : 0.0345    map@10 : 0.0473    giniindex@10 : 0.9697    tailpercentage@10 : 0.0019
+Test result:
+recall@10 : 0.084    mrr@10 : 0.1988    ndcg@10 : 0.0916    hit@10 : 0.324    precision@10 : 0.0449    map@10 : 0.0508    giniindex@10 : 0.9688    tailpercentage@10 : 0.0021
+
+learning_rate:0.01, n_layers:3, reg_weight:1e-05
+Valid result:
+recall@10 : 0.1341    mrr@10 : 0.1856    ndcg@10 : 0.1105    hit@10 : 0.3787    precision@10 : 0.0485    map@10 : 0.0628    giniindex@10 : 0.9248    tailpercentage@10 : 0.0019
+Test result:
+recall@10 : 0.1257    mrr@10 : 0.2384    ndcg@10 : 0.1214    hit@10 : 0.4553    precision@10 : 0.0653    map@10 : 0.0639    giniindex@10 : 0.9206    tailpercentage@10 : 0.002
+
+learning_rate:0.005, n_layers:2, reg_weight:1e-05
+Valid result:
+recall@10 : 0.1327    mrr@10 : 0.1815    ndcg@10 : 0.108    hit@10 : 0.3727    precision@10 : 0.0479    map@10 : 0.0607    giniindex@10 : 0.926    tailpercentage@10 : 0.0014
+Test result:
+recall@10 : 0.1269    mrr@10 : 0.2432    ndcg@10 : 0.1233    hit@10 : 0.45    precision@10 : 0.0657    map@10 : 0.0656    giniindex@10 : 0.9223    tailpercentage@10 : 0.0016
+
+learning_rate:0.005, n_layers:3, reg_weight:0.0001
+Valid result:
+recall@10 : 0.1339    mrr@10 : 0.1833    ndcg@10 : 0.1101    hit@10 : 0.374    precision@10 : 0.0489    map@10 : 0.0624    giniindex@10 : 0.9396    tailpercentage@10 : 0.0012
+Test result:
+recall@10 : 0.1292    mrr@10 : 0.2409    ndcg@10 : 0.1231    hit@10 : 0.4553    precision@10 : 0.0665    map@10 : 0.0648    giniindex@10 : 0.9365    tailpercentage@10 : 0.0014
+
+learning_rate:0.01, n_layers:3, reg_weight:0.001
+Valid result:
+recall@10 : 0.135    mrr@10 : 0.1838    ndcg@10 : 0.1105    hit@10 : 0.3793    precision@10 : 0.0492    map@10 : 0.0626    giniindex@10 : 0.9125    tailpercentage@10 : 0.0022
+Test result:
+recall@10 : 0.1255    mrr@10 : 0.2394    ndcg@10 : 0.1215    hit@10 : 0.4513    precision@10 : 0.0649    map@10 : 0.0641    giniindex@10 : 0.9088    tailpercentage@10 : 0.0023
+
+learning_rate:0.0005, n_layers:1, reg_weight:0.01
+Valid result:
+recall@10 : 0.1304    mrr@10 : 0.1819    ndcg@10 : 0.1079    hit@10 : 0.368    precision@10 : 0.0477    map@10 : 0.0611    giniindex@10 : 0.9279    tailpercentage@10 : 0.0012
+Test result:
+recall@10 : 0.1232    mrr@10 : 0.2386    ndcg@10 : 0.1199    hit@10 : 0.4413    precision@10 : 0.0644    map@10 : 0.0634    giniindex@10 : 0.9247    tailpercentage@10 : 0.0015
+
+learning_rate:0.001, n_layers:2, reg_weight:0.001
+Valid result:
+recall@10 : 0.13    mrr@10 : 0.1823    ndcg@10 : 0.1083    hit@10 : 0.3667    precision@10 : 0.0475    map@10 : 0.0619    giniindex@10 : 0.9347    tailpercentage@10 : 0.0013
+Test result:
+recall@10 : 0.1281    mrr@10 : 0.2401    ndcg@10 : 0.1226    hit@10 : 0.452    precision@10 : 0.0662    map@10 : 0.0647    giniindex@10 : 0.931    tailpercentage@10 : 0.0013
+
+learning_rate:0.01, n_layers:1, reg_weight:0.001
+Valid result:
+recall@10 : 0.1214    mrr@10 : 0.167    ndcg@10 : 0.0995    hit@10 : 0.352    precision@10 : 0.0452    map@10 : 0.0554    giniindex@10 : 0.9279    tailpercentage@10 : 0.0021
+Test result:
+recall@10 : 0.1168    mrr@10 : 0.2238    ndcg@10 : 0.1134    hit@10 : 0.4227    precision@10 : 0.0615    map@10 : 0.0599    giniindex@10 : 0.9249    tailpercentage@10 : 0.0025
+
+learning_rate:0.005, n_layers:1, reg_weight:1e-05
+Valid result:
+recall@10 : 0.1246    mrr@10 : 0.1708    ndcg@10 : 0.1016    hit@10 : 0.3547    precision@10 : 0.046    map@10 : 0.0565    giniindex@10 : 0.894    tailpercentage@10 : 0.0035
+Test result:
+recall@10 : 0.1227    mrr@10 : 0.2315    ndcg@10 : 0.1177    hit@10 : 0.4447    precision@10 : 0.0639    map@10 : 0.0619    giniindex@10 : 0.8897    tailpercentage@10 : 0.0033
+
+learning_rate:0.001, n_layers:3, reg_weight:0.001
+Valid result:
+recall@10 : 0.0893    mrr@10 : 0.1451    ndcg@10 : 0.0803    hit@10 : 0.2747    precision@10 : 0.0341    map@10 : 0.0465    giniindex@10 : 0.987    tailpercentage@10 : 0.0008
+Test result:
+recall@10 : 0.0855    mrr@10 : 0.1942    ndcg@10 : 0.0903    hit@10 : 0.33    precision@10 : 0.0452    map@10 : 0.049    giniindex@10 : 0.9864    tailpercentage@10 : 0.0009
 
 learning_rate:0.0001, n_layers:3, reg_weight:1e-05
 Valid result:
-recall@10 : 0.1082    mrr@10 : 0.2586    ndcg@10 : 0.1168    hit@10 : 0.494    precision@10 : 0.0731    map@10 : 0.0574    giniindex@10 : 0.9952    tailpercentage@10 : 0.0002
+recall@10 : 0.0868    mrr@10 : 0.1445    ndcg@10 : 0.0789    hit@10 : 0.2673    precision@10 : 0.0331    map@10 : 0.0457    giniindex@10 : 0.9844    tailpercentage@10 : 0.0009
 Test result:
-recall@10 : 0.1104    mrr@10 : 0.3738    ndcg@10 : 0.1536    hit@10 : 0.5853    precision@10 : 0.1041    map@10 : 0.078    giniindex@10 : 0.9948    tailpercentage@10 : 0.0002
+recall@10 : 0.0834    mrr@10 : 0.1918    ndcg@10 : 0.0885    hit@10 : 0.3267    precision@10 : 0.0441    map@10 : 0.0479    giniindex@10 : 0.9839    tailpercentage@10 : 0.001
+
+learning_rate:0.0005, n_layers:2, reg_weight:0.0001
+Valid result:
+recall@10 : 0.0916    mrr@10 : 0.1488    ndcg@10 : 0.0822    hit@10 : 0.2787    precision@10 : 0.035    map@10 : 0.0475    giniindex@10 : 0.9709    tailpercentage@10 : 0.0015
+Test result:
+recall@10 : 0.0872    mrr@10 : 0.1984    ndcg@10 : 0.093    hit@10 : 0.332    precision@10 : 0.0464    map@10 : 0.0512    giniindex@10 : 0.9701    tailpercentage@10 : 0.0017
+
+learning_rate:0.0005, n_layers:2, reg_weight:0.01
+Valid result:
+recall@10 : 0.0911    mrr@10 : 0.1484    ndcg@10 : 0.0819    hit@10 : 0.278    precision@10 : 0.0349    map@10 : 0.0473    giniindex@10 : 0.9716    tailpercentage@10 : 0.0015
+Test result:
+recall@10 : 0.0872    mrr@10 : 0.1985    ndcg@10 : 0.093    hit@10 : 0.3333    precision@10 : 0.0464    map@10 : 0.0512    giniindex@10 : 0.9707    tailpercentage@10 : 0.0017
 
