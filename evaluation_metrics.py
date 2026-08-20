@@ -184,6 +184,31 @@ def nash_social_welfare(scores):
     return float(np.exp(np.mean(np.log(vals))))
 
 
+def fairness_l1_2_norm(scores):
+    """
+    SCRUF-D's L_(1/2) norm (Aird, Sonboli & Burke) over per-agent
+    fairness-so-far scores m_i -- same m_i notation as dynamic_allocation.py's
+    FairnessTracker. The power mean of order 1/2, generalized to n agents as
+
+        L_(1/2) = (1/n^2) * (sum_i sqrt(m_i))^2
+
+    (the paper's 1/4 factor is the n=2 case of this 1/n^2 scaling, chosen so
+    the result stays on the same [0,1] scale as the m_i inputs). Reaches its
+    maximum -- equal to the arithmetic mean of the m_i -- when every agent
+    has the same score; any mix of higher and lower values with the same
+    mean gives a strictly lower result (concavity of sqrt), so like NSW this
+    rewards balance across agents over one agent's gain at another's
+    expense. Unlike NSW, it does NOT collapse to exactly 0 the moment a
+    single agent hits 0 -- it degrades continuously, so it stays informative
+    in regimes where NSW would already be pinned at 0.
+    """
+    vals = [max(float(v), 0.0) for v in scores]
+    n = len(vals)
+    if n == 0:
+        return 0.0
+    return float((1.0 / n ** 2) * (sum(np.sqrt(v) for v in vals)) ** 2)
+
+
 def fairness_l2(scores, weights=None):
     """
     Compromise-programming L2 distance from the ideal point (every agent
@@ -246,10 +271,13 @@ def unified_fairness_metric_scores(ild, geo_ild, jsd, geo_ild_ideal, weights=Non
     Achievement scores s_i in [0,1] (1=ideal) for the three raw per-mechanism
     metrics that anchor the three fairness agents -- ILD (Provider), GeoILD
     (Civic), JSD (Platform) -- collapsed via compromise programming into
-    Fairness_L2 (compensatory) and Fairness_Chebyshev (Rawlsian worst-case).
-    Unlike unified_fairness_nsw (built on RBO rank-agreement with each
-    stakeholder's own list), this measures how close each mechanism's own
-    metric VALUE comes to that metric's achievable ideal.
+    Fairness_L2 (compensatory) and Fairness_Chebyshev (Rawlsian worst-case),
+    plus the SCRUF-D L_(1/2) norm (see fairness_l1_2_norm) as a third,
+    NSW-like aggregate that rewards balance without collapsing to 0 the
+    moment one agent hits 0. Unlike unified_fairness_nsw (built on RBO
+    rank-agreement with each stakeholder's own list), this measures how
+    close each mechanism's own metric VALUE comes to that metric's
+    achievable ideal.
 
     s_ild:      ILD itself -- already bounded [0,1] (cosine similarity over
                 non-negative vectors), higher=better, ideal=1, no anchor needed.
@@ -264,7 +292,8 @@ def unified_fairness_metric_scores(ild, geo_ild, jsd, geo_ild_ideal, weights=Non
                 s=1 (degenerate single-item lists, guarded to avoid a division
                 by zero).
 
-    Returns {"s_ild", "s_geo_ild", "s_jsd", "fairness_l2", "fairness_chebyshev"}.
+    Returns {"s_ild", "s_geo_ild", "s_jsd", "fairness_l2", "fairness_chebyshev",
+    "fairness_l1_2"}.
     """
     s_ild = float(np.clip(ild, 0.0, 1.0))
     s_jsd = float(np.clip(1.0 - jsd, 0.0, 1.0))
@@ -276,7 +305,22 @@ def unified_fairness_metric_scores(ild, geo_ild, jsd, geo_ild_ideal, weights=Non
         "s_jsd": s_jsd,
         "fairness_l2": fairness_l2(vals, weights=weights),
         "fairness_chebyshev": fairness_chebyshev(vals, weights=weights),
+        "fairness_l1_2": fairness_l1_2_norm(vals),
     }
+
+
+def balanced_accuracy_alpha_ndcg(ndcg, fairness_l2, alpha=0.5):
+    """
+    Balanced accuracy between ranking utility (nDCG) and fairness
+    achievement (1 - Fairness_L2, so higher = better on both terms) --
+    the same weighted-average framing as balanced accuracy in
+    classification (mean of two per-axis scores), with `alpha` exposed as
+    a tunable weight. alpha=0.5 (default) is the standard equal-weight
+    "balanced" case; alpha=1 collapses to nDCG alone, alpha=0 to pure
+    fairness achievement. Both input terms are in [0,1] with 1=ideal, so
+    the result is in [0,1] with 1=ideal by construction.
+    """
+    return float(alpha * ndcg + (1 - alpha) * (1 - fairness_l2))
 
 
 def max_pairwise_haversine(item_coords):
