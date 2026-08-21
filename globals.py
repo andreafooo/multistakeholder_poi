@@ -101,7 +101,7 @@ methods_to_aggregate = ["baseline", "platform", "civic", "provider"]
 sc_methods = ["borda", "schulze"]
 
 # full_eval_methods = ["baseline", "platform", "provider", "civic", "borda", "schulze", "rrf"]
-full_eval_methods = ["baseline", "platform", "provider", "civic", "borda", "schulze", "rrf", "mo_greedy", "mo_greedy_pctrank"]
+full_eval_methods = ["baseline", "platform", "provider", "civic", "borda", "schulze", "rrf", "mo_greedy", "mo_greedy_pctrank", "borda_bo_chebyshev_N75", "borda_bo_l2_N75"]
 boosting_methods = ["borda2baseline", "borda2platform", "borda2civic", "borda2provider",
                     "schulze2baseline", "schulze2platform", "schulze2civic", "schulze2provider"]
 
