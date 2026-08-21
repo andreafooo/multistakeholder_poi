@@ -5,16 +5,25 @@ from rbo import RankingSimilarity
 
 
 def ndcg(test_data, df, top_k_eval=10):
-    test_data = test_data.copy()  # Prevent modifying the original data
+    # Precompute per-user true-item lookups once (groupby over test_data)
+    # instead of re-scanning the whole table with a boolean mask on every
+    # iteration of the loop below -- same result, avoids O(users x len(test_data))
+    # repeated filtering. true_items_count_by_user intentionally counts raw
+    # rows (like the original len(true_items).values did), including any
+    # duplicate (user, item) rows in test_data -- only the membership check
+    # uses a set, the iDCG@k denominator still reflects the raw count.
+    grouped_true = test_data.groupby("user_id:token")["item_id:token"]
+    true_items_set_by_user = grouped_true.apply(set)
+    true_items_count_by_user = grouped_true.size()
+
+    recs_by_user = df.groupby("user_id:token", sort=False)["item_id:token"].apply(list)
+
     ndcg_scores = {}
+    for user_id, rec_list in recs_by_user.items():
+        recommended_items = rec_list[:top_k_eval]
 
-    for user_id in df["user_id:token"].unique():
-        user_recommendations = df[df["user_id:token"] == user_id]
-        recommended_items = user_recommendations["item_id:token"].tolist()[:top_k_eval]
-
-        true_items = test_data[test_data["user_id:token"] == user_id][
-            "item_id:token"
-        ].values
+        true_items = true_items_set_by_user.get(user_id, set())
+        n_true_items = int(true_items_count_by_user.get(user_id, 0))
         true_relevance = [1 if item in true_items else 0 for item in recommended_items]
 
         # Compute DCG@k
@@ -22,7 +31,7 @@ def ndcg(test_data, df, top_k_eval=10):
 
         # Compute iDCG@k
         idcg = sum(
-            1 / np.log2(idx + 2) for idx in range(min(len(true_items), top_k_eval))
+            1 / np.log2(idx + 2) for idx in range(min(n_true_items, top_k_eval))
         )
 
         ndcg_scores[user_id] = dcg / idcg if idcg > 0 else 0
@@ -121,13 +130,16 @@ def jensen_shannon_per_user(user_profiles, recs_df, item_pop_col="item_pop_group
 
     Returns {user_id: jsd_score}.
     """
-    profiles = user_profiles.set_index("user_id:token")[["h_ratio", "m_ratio", "t_ratio"]]
+    # .to_dict("index") once up front, instead of a pandas .loc[user_id]
+    # single-row lookup inside the loop (a well-known slow pattern -- each
+    # .loc call re-does index alignment) -- same values, plain dict lookups.
+    profiles = user_profiles.set_index("user_id:token")[["h_ratio", "m_ratio", "t_ratio"]].to_dict("index")
 
     scores = {}
     for user_id, group in recs_df.groupby("user_id:token"):
-        if user_id not in profiles.index:
+        if user_id not in profiles:
             continue
-        profile_ratios = profiles.loc[user_id].to_dict()
+        profile_ratios = profiles[user_id]
         rec_counts = group[item_pop_col].value_counts(normalize=True)
         recommended_ratios = {f"{g}_ratio": rec_counts.get(g, 0.0) for g in ("h", "m", "t")}
         scores[user_id] = jensen_shannon(profile_ratios, recommended_ratios)
