@@ -56,8 +56,9 @@ from globals import (
     DIRICHLET_SWEEP_MODELS,
     methods_to_aggregate,
     top_k_eval,
+    top_k_resample
 )
-from payoff_table_experiment import N_RESAMPLE, build_env, results_dict_to_df, score_df, score_df_raw
+from payoff_table_experiment import build_env, results_dict_to_df, score_df, score_df_raw
 from social_choice_aggregation import (
     BASE_DIR,
     flatten_winners,
@@ -68,7 +69,7 @@ from social_choice_aggregation import (
 )
 
 SC_METHODS = ("borda", "schulze")
-RANDOM_STATE = 42
+RANDOM_STATE = 111
 
 
 def dirichlet_weight_vectors(n_draws, seed=RANDOM_STATE):
@@ -169,7 +170,7 @@ def _load_completed_keys(out_path, group_col):
     return set(zip(existing[group_col], existing["label"]))
 
 
-def sweep_out_path(dataset, model, n_resample=N_RESAMPLE):
+def sweep_out_path(dataset, model, n_resample=top_k_resample):
     """.../datasets/<dataset>_dataset/recommendations/<model_dir>/dirichlet_sweep/... --
     lives inside that model's own recommendation directory, alongside its
     borda/schulze social-choice outputs (get_sc_output_dir's convention in
@@ -181,7 +182,7 @@ def sweep_out_path(dataset, model, n_resample=N_RESAMPLE):
     return os.path.join(out_dir, f"dirichlet_sweep_{dataset}_{model}_N{n_resample}.csv")
 
 
-def run_sweep_for_model(dataset, model, out_path, n_resample=N_RESAMPLE, n_random_draws=DIRICHLET_N_RANDOM_DRAWS):
+def run_sweep_for_model(dataset, model, out_path, n_resample=top_k_resample, n_random_draws=DIRICHLET_N_RANDOM_DRAWS):
     print(f"Building env for dataset={dataset} model={model} N_RESAMPLE={n_resample} ...")
     env = build_env(dataset=dataset, model=model, n_resample=n_resample)
 
