@@ -5,7 +5,7 @@ import os
 # -----------------------------------------
 PROJECT_BASE = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.join(PROJECT_BASE, "datasets") 
-top_k_resample = 150
+top_k_resample = 75
                                                                # vary this per subprocess without editing this file
 top_k_eval = 10
 valid_popularity = "item_pop"
@@ -121,6 +121,19 @@ rrf_k = 60  # RRF's k constant (Cormack, Clarke & Buttcher 2009 default)
 # (percentile-rank normalized across the remaining candidates at each step, same
 # pandas .rank(pct=True) approach compute_user_compatibility.py uses across users).
 MO_GREEDY_WEIGHTS = {"relevance": 1.0, "diversity": 1.0, "geo": 1.0, "calibration": 1.0}
+
+# -----------------------------------------
+# Dirichlet weight sweep (sweeps/dirichlet_sweep.py)
+# -----------------------------------------
+# (dataset, model) pairs the sweep runs over -- kept separate from
+# available_datasets/sc_models so this (expensive: one real election per
+# sampled weight vector) can be scoped down without touching the main
+# pipeline's config. Loop in dirichlet_sweep.py runs all pairs listed here;
+# set manually to whichever (dataset, model) you want swept.
+DIRICHLET_SWEEP_MODELS = [
+    ("yelpphl", "LightGCN"),
+]
+DIRICHLET_N_RANDOM_DRAWS = 40  # + 4 fixed anchors (3 corners + centroid) per (dataset, model, sc_method)
 
 # -----------------------------------------
 # Dynamic allocation (SCRUF-D mechanisms)
