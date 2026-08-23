@@ -146,9 +146,9 @@ def run_social_choice_for_user(user_id, method_recommendations, all_candidates, 
     profile = profile.group_ballots()
 
     if method == "schulze":
-        return Schulze(profile=profile, n_seats=n_seats)
+        return Schulze(profile=profile, tie_break="first_place", n_seats=n_seats)
     elif method == "borda":
-        return Borda(profile=profile, tiebreak="borda", n_seats=n_seats)
+        return Borda(profile=profile, tiebreak="first_place", n_seats=n_seats)
     else:
         raise ValueError(f"Unknown method: {method}")
 
