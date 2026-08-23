@@ -504,12 +504,12 @@ def main(datasets=None):
             on="item_id:token",
             how="left",
         )
-        if checkin_df_filtered["user_id:token"].nunique() > 1500:
-            sep_num = 1500 // 5
+        if checkin_df_filtered["user_id:token"].nunique() > 3000:
+            sep_num = 3000 // 5
         else:
             sep_num = checkin_df_filtered["user_id:token"].nunique() // 5
 
-        # Create samples of 1500 users (except for foursquaretky where only 600 users are in the dataset)
+        # Create samples of 3000 users (except for foursquaretky where only 600 users are in the dataset)
         (
             
             checkin_df_sample,
