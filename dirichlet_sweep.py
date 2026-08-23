@@ -25,13 +25,20 @@ every draw -- there is no cheap linear-recombination shortcut for Schulze
 and Borda is kept on the identical code path so the two methods are directly
 comparable rather than one being an approximation.
 
+A second leg sweeps the two MultiObjectiveGreedyReranker normalization
+variants ("bounded"/"percentile_rank") over its 4-term weight space
+(relevance, diversity, geo, calibration) the same way -- see
+run_mo_reranker_sweep below.
+
 Scope is controlled by globals.DIRICHLET_SWEEP_MODELS -- a list of
 (dataset, model) pairs to sweep. No per-user recommendations are written --
 only the weights + resulting metrics are logged, to
 datasets/<dataset>_dataset/recommendations/<model_dir>/dirichlet_sweep/
-dirichlet_sweep_<dataset>_<model>_N<n_resample>.csv, alongside that model's
-other outputs (mirrors get_sc_output_dir's per-model-dir convention in
-social_choice_aggregation.py) rather than a separate top-level sweeps/ folder.
+dirichlet_sweep_<dataset>_<model>_N<n_resample>.csv (social-choice leg) and
+.../dirichlet_sweep_mo/dirichlet_sweep_mo_<dataset>_<model>.csv (MO leg),
+alongside that model's other outputs (mirrors get_sc_output_dir's
+per-model-dir convention in social_choice_aggregation.py) rather than a
+separate top-level sweeps/ folder.
 
 Usage:
     python3 dirichlet_sweep.py
@@ -151,6 +158,17 @@ def _append_row_to_csv(row, out_path):
     pd.DataFrame([row]).to_csv(out_path, mode="a", header=not os.path.exists(out_path), index=False)
 
 
+def _load_completed_keys(out_path, group_col):
+    """Reads (group_col, label) pairs already checkpointed in out_path, so a
+    rerun after a crash can pick up where it left off instead of either
+    wiping and redoing the whole sweep or silently duplicating rows already
+    on disk. Returns an empty set if out_path doesn't exist yet."""
+    if not os.path.exists(out_path):
+        return set()
+    existing = pd.read_csv(out_path, usecols=[group_col, "label"])
+    return set(zip(existing[group_col], existing["label"]))
+
+
 def sweep_out_path(dataset, model, n_resample=N_RESAMPLE):
     """.../datasets/<dataset>_dataset/recommendations/<model_dir>/dirichlet_sweep/... --
     lives inside that model's own recommendation directory, alongside its
@@ -167,10 +185,10 @@ def run_sweep_for_model(dataset, model, out_path, n_resample=N_RESAMPLE, n_rando
     print(f"Building env for dataset={dataset} model={model} N_RESAMPLE={n_resample} ...")
     env = build_env(dataset=dataset, model=model, n_resample=n_resample)
 
-    # Fresh run -- start out_path from scratch rather than appending onto a
-    # previous run's (possibly differently-scoped) checkpoint file.
-    if os.path.exists(out_path):
-        os.remove(out_path)
+    # Resume support -- skip (sc_method, label) draws already checkpointed by
+    # a prior, interrupted run of this exact out_path, rather than either
+    # wiping and redoing the whole sweep or appending duplicate rows onto it.
+    completed = _load_completed_keys(out_path, "sc_method")
 
     weight_vectors = dirichlet_weight_vectors(n_random_draws)
     rows = []
@@ -178,6 +196,8 @@ def run_sweep_for_model(dataset, model, out_path, n_resample=N_RESAMPLE, n_rando
         for label, (w_platform, w_provider, w_civic) in tqdm(
             weight_vectors, desc=f"{dataset}/{model}/{sc_method}", unit="draw"
         ):
+            if (sc_method, label) in completed:
+                continue
             t0 = time.time()
             results = run_real_weighted_sc(sc_method, w_platform, w_provider, w_civic, dataset, model, n_resample)
             result_df = results_dict_to_df(results, k=top_k_eval)
@@ -212,18 +232,19 @@ def run_sweep_for_model(dataset, model, out_path, n_resample=N_RESAMPLE, n_rando
             }
             _append_row_to_csv(row, out_path)
             rows.append(row)
-    return pd.DataFrame(rows)
+    # Read back from out_path rather than returning just the newly-computed
+    # rows -- on a resumed run those are only the gap, not the full sweep.
+    return pd.read_csv(out_path)
 
 
 # ---------------------------------------------------------------------------
-# Multi-objective greedy reranker leg -- scaffolded but not wired into main()
-# yet. MultiObjectiveGreedyReranker has no agent-recombination shortcut
-# (each greedy step's candidate ranking depends on the weights, so there's no
-# cached per-agent score to linearly recombine after the fact the way Borda's
-# n-minus-rank scores can be) -- every draw is a full rerank_all() pass over
-# all users, once per normalization variant ("bounded"/"mo_greedy_pctrank").
-# Left as a separate opt-in entry point (run_mo_reranker_sweep) until the
-# sample budget/normalization choice for it is settled.
+# Multi-objective greedy reranker leg. MultiObjectiveGreedyReranker has no
+# agent-recombination shortcut (each greedy step's candidate ranking depends
+# on the weights, so there's no cached per-agent score to linearly recombine
+# after the fact the way Borda's n-minus-rank scores can be) -- every draw is
+# a full rerank_all() pass over all users, once per normalization variant
+# ("bounded"/"percentile_rank", the same two variants multi_objective_reranker
+# .main() persists to disk as the "mo_greedy"/"mo_greedy_pctrank" folders).
 # ---------------------------------------------------------------------------
 
 def dirichlet_weight_vectors_mo(n_draws, seed=RANDOM_STATE):
@@ -242,12 +263,23 @@ def dirichlet_weight_vectors_mo(n_draws, seed=RANDOM_STATE):
     return [(label, dict(zip(terms, w.tolist()))) for label, w in zip(labels, weights)]
 
 
+def mo_sweep_out_path(dataset, model, basedir):
+    """.../datasets/<dataset>_dataset/recommendations/<model_dir>/dirichlet_sweep_mo/... --
+    same per-model-dir convention as sweep_out_path, kept in its own
+    dirichlet_sweep_mo subfolder (rather than dirichlet_sweep) since it's a
+    different weight space (4 MO-reranker terms, not the 3 social-choice
+    agents) and shouldn't be mistaken for a continuation of that CSV."""
+    out_dir = os.path.join(basedir, "dirichlet_sweep_mo")
+    os.makedirs(out_dir, exist_ok=True)
+    return os.path.join(out_dir, f"dirichlet_sweep_mo_{dataset}_{model}.csv")
+
+
 def run_mo_reranker_sweep(dataset, model, n_random_draws=DIRICHLET_N_RANDOM_DRAWS,
                            normalizations=("bounded", "percentile_rank")):
-    """Not called from main() -- see module docstring. Each (draw x
-    normalization) pair is a full MultiObjectiveGreedyReranker.rerank_all()
-    pass over every user; budget n_random_draws accordingly before wiring
-    this in."""
+    """Each (draw x normalization) pair is a full
+    MultiObjectiveGreedyReranker.rerank_all() pass over every user --
+    checkpointed to out_path after every draw for the same reason as
+    _append_row_to_csv above (a real risk of a crash partway through)."""
     from civic_reranker import load_coordinates
     from evaluation_metrics import max_pairwise_haversine
     from multi_objective_reranker import MultiObjectiveGreedyReranker
@@ -288,10 +320,20 @@ def run_mo_reranker_sweep(dataset, model, n_random_draws=DIRICHLET_N_RANDOM_DRAW
 
     env = build_env(dataset=dataset, model=model)  # for score_df's ndcg/jsd/ild/geo scoring
 
+    out_path = mo_sweep_out_path(dataset, model, basedir)
+
+    # Resume support -- skip (normalization, label) draws already
+    # checkpointed by a prior, interrupted run of this exact out_path, rather
+    # than either wiping and redoing the whole sweep or appending duplicate
+    # rows onto it.
+    completed = _load_completed_keys(out_path, "normalization")
+
     weight_vectors = dirichlet_weight_vectors_mo(n_random_draws)
     rows = []
     for normalization in normalizations:
         for label, weights in tqdm(weight_vectors, desc=f"{dataset}/{model}/mo_greedy/{normalization}", unit="draw"):
+            if (normalization, label) in completed:
+                continue
             t0 = time.time()
             reranker = MultiObjectiveGreedyReranker(
                 item_sim, item_id_to_idx, item_coords, item_pop_group, max_geo_km,
@@ -301,11 +343,15 @@ def run_mo_reranker_sweep(dataset, model, n_random_draws=DIRICHLET_N_RANDOM_DRAW
             df = out_df.rename(columns={"item_id:token": "item_id:token", "user_id:token": "user_id:token"})
             metrics = score_df(df[["user_id:token", "item_id:token"]], env)
             elapsed = time.time() - t0
-            rows.append({
+            row = {
                 "dataset": dataset, "model": model, "normalization": normalization, "label": label,
                 **weights, **metrics, "elapsed_s": elapsed,
-            })
-    return pd.DataFrame(rows)
+            }
+            _append_row_to_csv(row, out_path)
+            rows.append(row)
+    # Read back from out_path rather than returning just the newly-computed
+    # rows -- on a resumed run those are only the gap, not the full sweep.
+    return pd.read_csv(out_path), out_path
 
 
 def main():
@@ -314,6 +360,10 @@ def main():
         df = run_sweep_for_model(dataset, model, out_path)
         print(f"\nSaved {len(df)} rows to {out_path} (checkpointed incrementally, one row per draw)")
         print(df.groupby(["sc_method"])[["ndcg", "platform", "provider", "civic"]].describe())
+
+        mo_df, mo_out_path = run_mo_reranker_sweep(dataset, model)
+        print(f"\nSaved {len(mo_df)} rows to {mo_out_path} (checkpointed incrementally, one row per draw)")
+        print(mo_df.groupby(["normalization"])[["ndcg", "platform", "provider", "civic"]].describe())
 
 
 if __name__ == "__main__":
