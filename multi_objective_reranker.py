@@ -214,7 +214,7 @@ def main(available_datasets):
                 user_profiles = calculate_user_popularity_distributions(train_data_with_tiers, item_popularity)
 
                 for normalization, folder_name in [
-                    # ("bounded", "mo_greedy"),
+                    ("bounded", "mo_greedy"),
                     ("percentile_rank", "mo_greedy_pctrank"),
                 ]:
                     reranker = MultiObjectiveGreedyReranker(
