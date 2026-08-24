@@ -12,7 +12,7 @@ valid_popularity = "item_pop"
 recommendation_dirpart = "recommendations"
 available_datasets = [
     "foursquaretky", 
-    "yelpphl", 
+    # "yelpphl", 
 ]  # choose betweeen "yelp", "foursquaretky", "yelpphl", and "yelpno", and make sure to add the datasets to your BASE_DIR
 
 # -----------------------------------------
@@ -49,7 +49,8 @@ foursquare_excluded_categories = ["Home (private)",
 # RecBole Config for baseline creation
 # -----------------------------------------
 datasets_for_recbole = [
- "foursquaretky_sample", "yelpphl_sample"
+"foursquaretky_sample", 
+# "yelpphl_sample"
 ]  # add datasets for recbole from above with "_sample" suffix - make sure to add them to recbole_general_recs/dataset
 models_for_recbole = [
     "BPR", "LightGCN", "NeuMF"
@@ -131,7 +132,8 @@ MO_GREEDY_WEIGHTS = {"relevance": 1.0, "diversity": 1.0, "geo": 1.0, "calibratio
 # pipeline's config. Loop in dirichlet_sweep.py runs all pairs listed here;
 # set manually to whichever (dataset, model) you want swept.
 DIRICHLET_SWEEP_MODELS = [
-    ("yelpphl", "LightGCN"),
+ ("foursquaretky", "LightGCN"),
+ #   ("yelpphl", "LightGCN")
 ]
 DIRICHLET_N_RANDOM_DRAWS = 40  # + 4 fixed anchors (3 corners + centroid) per (dataset, model, sc_method)
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name="rerank_and_aggregate"
+#SBATCH --job-name="dirichlet"
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
@@ -13,4 +13,7 @@ set -euo pipefail
 cd "$SLURM_SUBMIT_DIR"
 source venv/bin/activate
 
-./run_rerank_and_aggregate.sh
+
+python3 ./dirichlet_sweep.py
+
+
