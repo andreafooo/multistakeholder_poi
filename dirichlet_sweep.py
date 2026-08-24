@@ -26,9 +26,15 @@ and Borda is kept on the identical code path so the two methods are directly
 comparable rather than one being an approximation.
 
 A second leg sweeps the two MultiObjectiveGreedyReranker normalization
-variants ("bounded"/"percentile_rank") over its 4-term weight space
-(relevance, diversity, geo, calibration) the same way -- see
-run_mo_reranker_sweep below.
+variants ("bounded"/"percentile_rank") the same way -- see
+run_mo_reranker_sweep below. relevance is fixed at 1.0 (never swept), the
+same "always-on" convention as the SC leg's baseline agent, and the 3 swept
+terms (calibration, diversity, geo) reuse the exact same seeded
+dirichlet_weight_vectors() draws as (w_platform, w_provider, w_civic) --
+mapped by which per-user metric each one scores (platform's JSD <->
+calibration, provider's ILD <-> diversity, civic's geo_ild <-> geo) -- so a
+given label means the identical weight draw in both legs' CSVs, just applied
+to a different mechanism.
 
 Scope is controlled by globals.DIRICHLET_SWEEP_MODELS -- a list of
 (dataset, model) pairs to sweep. No per-user recommendations are written --
@@ -182,6 +188,41 @@ def sweep_out_path(dataset, model, n_resample=top_k_resample):
     return os.path.join(out_dir, f"dirichlet_sweep_{dataset}_{model}_N{n_resample}.csv")
 
 
+def baseline_out_path(dataset, model, n_resample=top_k_resample):
+    model_dir = get_paths_for_sc_input(dataset)[model]["model_dir"]
+    out_dir = os.path.join(BASE_DIR, f"{dataset}_dataset", recommendation_dirpart, model_dir)
+    return os.path.join(out_dir, f"dirichlet_sweep_baseline_{dataset}_{model}_N{n_resample}.csv")
+
+
+def compute_baseline_row(dataset, model, n_resample=top_k_resample):
+    """The plain base recommender's own top-k output -- the fixed weight=1.0
+    'baseline' agent both legs feed in alongside platform/provider/civic,
+    before any social-choice or MO reranking -- scored the same way as every
+    swept draw. A single fixed reference point (not itself swept), so it can
+    be plotted alongside the sweep as the pre-reranking baseline."""
+    env = build_env(dataset=dataset, model=model, n_resample=n_resample)
+    paths = get_paths_for_sc_input(dataset)[model]
+    with open(paths["baseline"]) as f:
+        baseline_data = json.load(f)
+    result_df = results_dict_to_df(baseline_data, k=top_k_eval)
+    metrics = score_df(result_df, env)
+    raw_metrics = score_df_raw(result_df, env)
+    row = {
+        "dataset": dataset,
+        "model": model,
+        "label": "baseline",
+        **metrics,
+        "jsd_raw": raw_metrics["jsd (lower better)"],
+        "ild_raw": raw_metrics["ild (higher better)"],
+        "geo_ild_km_raw": raw_metrics["geo_ild_km (lower better)"],
+        "poplift_raw": raw_metrics["poplift (0=neutral)"],
+        "gini_raw": raw_metrics["gini (lower better)"],
+    }
+    out_path = baseline_out_path(dataset, model, n_resample)
+    pd.DataFrame([row]).to_csv(out_path, index=False)
+    return row, out_path
+
+
 def run_sweep_for_model(dataset, model, out_path, n_resample=top_k_resample, n_random_draws=DIRICHLET_N_RANDOM_DRAWS):
     print(f"Building env for dataset={dataset} model={model} N_RESAMPLE={n_resample} ...")
     env = build_env(dataset=dataset, model=model, n_resample=n_resample)
@@ -248,28 +289,13 @@ def run_sweep_for_model(dataset, model, out_path, n_resample=top_k_resample, n_r
 # .main() persists to disk as the "mo_greedy"/"mo_greedy_pctrank" folders).
 # ---------------------------------------------------------------------------
 
-def dirichlet_weight_vectors_mo(n_draws, seed=RANDOM_STATE):
-    """[(label, {"relevance":.., "diversity":.., "geo":.., "calibration":..}), ...]
-    -- same construction as dirichlet_weight_vectors, over the 4 MO-reranker
-    terms instead of the 3 non-baseline social-choice agents (all 4 terms are
-    free here; MO_GREEDY_WEIGHTS has no fixed-at-1.0 "baseline" term)."""
-    rng = np.random.default_rng(seed)
-    terms = ("relevance", "diversity", "geo", "calibration")
-    random_draws = 4.0 * rng.dirichlet([1.0, 1.0, 1.0, 1.0], size=n_draws)
-
-    anchors = np.eye(4) * 4.0
-    anchors = np.vstack([anchors, np.ones(4)])  # 4 one-hot corners + equal-weight centroid
-    labels = [f"corner_{t}" for t in terms] + ["centroid"] + [f"random_{i}" for i in range(n_draws)]
-    weights = np.vstack([anchors, random_draws])
-    return [(label, dict(zip(terms, w.tolist()))) for label, w in zip(labels, weights)]
-
-
 def mo_sweep_out_path(dataset, model, basedir):
     """.../datasets/<dataset>_dataset/recommendations/<model_dir>/dirichlet_sweep_mo/... --
     same per-model-dir convention as sweep_out_path, kept in its own
     dirichlet_sweep_mo subfolder (rather than dirichlet_sweep) since it's a
-    different weight space (4 MO-reranker terms, not the 3 social-choice
-    agents) and shouldn't be mistaken for a continuation of that CSV."""
+    different mechanism (MO reranker, not social choice) scored under its own
+    normalization variants, even though it now reuses the SC leg's exact
+    weight draws -- shouldn't be mistaken for a continuation of that CSV."""
     out_dir = os.path.join(basedir, "dirichlet_sweep_mo")
     os.makedirs(out_dir, exist_ok=True)
     return os.path.join(out_dir, f"dirichlet_sweep_mo_{dataset}_{model}.csv")
@@ -329,12 +355,32 @@ def run_mo_reranker_sweep(dataset, model, n_random_draws=DIRICHLET_N_RANDOM_DRAW
     # rows onto it.
     completed = _load_completed_keys(out_path, "normalization")
 
-    weight_vectors = dirichlet_weight_vectors_mo(n_random_draws)
+    # Reuses dirichlet_weight_vectors verbatim (same RANDOM_STATE seed as the
+    # social-choice leg) rather than sampling the MO reranker's own 4-term
+    # simplex -- relevance is fixed at 1.0, same "always-on" convention as the
+    # SC leg's baseline agent (weight fixed at 1.0, never swept -- see
+    # run_real_weighted_sc), and the 3 swept terms are the *same* numeric
+    # draws as w_platform/w_provider/w_civic, each mapped to the MO term that
+    # scores the same underlying per-user metric: platform's JSD <->
+    # calibration's JS divergence, provider's ILD <-> diversity's behavioral
+    # ILD, civic's geo_ild <-> geo's geographic cost (see
+    # MultiObjectiveGreedyReranker._select's calibration_raw/diversity_raw/
+    # geo_raw in multi_objective_reranker.py). This makes a given label's
+    # draw directly comparable across both legs' CSVs, not just within one.
+    weight_vectors = dirichlet_weight_vectors(n_random_draws)
     rows = []
     for normalization in normalizations:
-        for label, weights in tqdm(weight_vectors, desc=f"{dataset}/{model}/mo_greedy/{normalization}", unit="draw"):
+        for label, (w_platform, w_provider, w_civic) in tqdm(
+            weight_vectors, desc=f"{dataset}/{model}/mo_greedy/{normalization}", unit="draw"
+        ):
             if (normalization, label) in completed:
                 continue
+            weights = {
+                "relevance": 1.0,
+                "calibration": w_platform,
+                "diversity": w_provider,
+                "geo": w_civic,
+            }
             t0 = time.time()
             reranker = MultiObjectiveGreedyReranker(
                 item_sim, item_id_to_idx, item_coords, item_pop_group, max_geo_km,
@@ -368,6 +414,9 @@ def run_mo_reranker_sweep(dataset, model, n_random_draws=DIRICHLET_N_RANDOM_DRAW
 
 def main():
     for dataset, model in DIRICHLET_SWEEP_MODELS:
+        baseline_row, baseline_path = compute_baseline_row(dataset, model)
+        print(f"Saved baseline reference row to {baseline_path}")
+
         out_path = sweep_out_path(dataset, model)
         df = run_sweep_for_model(dataset, model, out_path)
         print(f"\nSaved {len(df)} rows to {out_path} (checkpointed incrementally, one row per draw)")
