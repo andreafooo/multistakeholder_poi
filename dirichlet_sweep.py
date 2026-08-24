@@ -341,12 +341,23 @@ def run_mo_reranker_sweep(dataset, model, n_random_draws=DIRICHLET_N_RANDOM_DRAW
                 weights=weights, normalization=normalization,
             )
             out_df = reranker.rerank_all(base_resample, user_profiles, top_k=top_k_eval)
-            df = out_df.rename(columns={"item_id:token": "item_id:token", "user_id:token": "user_id:token"})
-            metrics = score_df(df[["user_id:token", "item_id:token"]], env)
+            df = out_df[["user_id:token", "item_id:token"]]
+            metrics = score_df(df, env)
+            # Same rationale as run_sweep_for_model: log score_df_raw's
+            # untransformed numbers (jsd/ild/geo_ild_km/poplift/gini)
+            # alongside the achievement ones rather than only the achievement
+            # scores, for parity with the social-choice leg's CSV.
+            raw_metrics = score_df_raw(df, env)
             elapsed = time.time() - t0
             row = {
                 "dataset": dataset, "model": model, "normalization": normalization, "label": label,
-                **weights, **metrics, "elapsed_s": elapsed,
+                **weights, **metrics,
+                "jsd_raw": raw_metrics["jsd (lower better)"],
+                "ild_raw": raw_metrics["ild (higher better)"],
+                "geo_ild_km_raw": raw_metrics["geo_ild_km (lower better)"],
+                "poplift_raw": raw_metrics["poplift (0=neutral)"],
+                "gini_raw": raw_metrics["gini (lower better)"],
+                "elapsed_s": elapsed,
             }
             _append_row_to_csv(row, out_path)
             rows.append(row)
